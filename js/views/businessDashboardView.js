@@ -43964,6 +43964,15 @@ const BusinessDashboardView = {
     posNote: '',
     lastCompletedSaleReceipt: null,
 
+    getPosAvailableProducts: function() {
+        const allProducts = this.getProducts ? this.getProducts() : [];
+        return allProducts.filter(p => {
+            const price = Number(p.salePrice || p.price || 0);
+            if (p.type === 'internal' && price <= 0) return false;
+            return price > 0;
+        });
+    },
+
     openPosModal: function() {
         const modal = document.getElementById('bizPosModal');
         if (!modal) return;
@@ -43986,7 +43995,7 @@ const BusinessDashboardView = {
         if (clientSel) {
             const clients = this.getClientsData ? this.getClientsData() : [];
             clientSel.innerHTML = `
-                <option value="">Anonim alıcı (Walk-in / Qonaq)</option>
+                <option value="">Anonim müştəri (Walk-in / Qonaq)</option>
                 ${clients.map(c => `
                     <option value="${c.id}">${this.escapeHtml(c.name)} (${c.phone || 'Nömrəsiz'})</option>
                 `).join('')}
@@ -44000,7 +44009,7 @@ const BusinessDashboardView = {
             const staffList = this.getStaffList ? this.getStaffList() : [];
             const activeStaff = staffList.filter(s => s.status !== 'inactive');
             sellerSel.innerHTML = `
-                <option value="">Növbətçi kassir / Administrator</option>
+                <option value="">Növbətçi kassir / Admin</option>
                 ${activeStaff.map(s => `
                     <option value="${s.id}">${this.escapeHtml(s.name)} (${this.escapeHtml(s.roleTitle || s.role || 'Usta')})</option>
                 `).join('')}
@@ -44030,7 +44039,11 @@ const BusinessDashboardView = {
         const discountInput = document.getElementById('posDiscountInput');
         if (discountInput) discountInput.value = '';
 
-        // Render categories & product grid
+        // Reset category scroll position
+        const catContainer = document.getElementById('posCategoryPills');
+        if (catContainer) catContainer.scrollLeft = 0;
+
+        // Render categories & product grid & cart
         this.renderPosCategoriesHtml();
         this.renderPosProductsGridHtml();
         this.renderPosCartUi();
@@ -44047,22 +44060,24 @@ const BusinessDashboardView = {
         const container = document.getElementById('posCategoryPills');
         if (!container) return;
         const categories = this.getProductCategories ? this.getProductCategories() : [];
-        const allProducts = this.getProducts ? this.getProducts() : [];
+        const availableProducts = this.getPosAvailableProducts();
         const activeCat = this.posCategoryFilter || 'all';
 
+        const validCategories = categories.filter(c => availableProducts.some(p => p.categoryId === c.id));
+
         const pills = [
-            { id: 'all', name: 'Bütün məhsullar', count: allProducts.length },
-            ...categories.map(c => ({
+            { id: 'all', name: 'Bütün məhsullar', count: availableProducts.length },
+            ...validCategories.map(c => ({
                 id: c.id,
                 name: c.name,
-                count: allProducts.filter(p => p.categoryId === c.id).length
+                count: availableProducts.filter(p => p.categoryId === c.id).length
             }))
         ];
 
         container.innerHTML = pills.map(p => {
             const isActive = activeCat === p.id;
             return `
-                <button type="button" onclick="BusinessDashboardView.setPosCategoryFilter('${p.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${isActive ? 'bg-[#101114] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+                <button type="button" onclick="BusinessDashboardView.setPosCategoryFilter('${p.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer shrink-0 ${isActive ? 'bg-[#101114] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
                     <span>${this.escapeHtml(p.name)}</span>
                     <span class="ml-1 text-[10px] opacity-70">(${p.count})</span>
                 </button>
@@ -44085,7 +44100,7 @@ const BusinessDashboardView = {
         const grid = document.getElementById('posProductsGrid');
         if (!grid) return;
 
-        let products = this.getProducts ? this.getProducts() : [];
+        let products = this.getPosAvailableProducts();
 
         // 1. Category filter
         if (this.posCategoryFilter && this.posCategoryFilter !== 'all') {
@@ -44107,7 +44122,7 @@ const BusinessDashboardView = {
             grid.innerHTML = `
                 <div class="col-span-2 sm:col-span-3 py-12 text-center text-slate-400 space-y-2">
                     <svg class="w-10 h-10 mx-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    <p class="text-xs font-medium">Heç bir məhsul tapılmadı</p>
+                    <p class="text-xs font-medium">Heç bir satış məhsulu tapılmadı</p>
                 </div>
             `;
             return;
@@ -44133,17 +44148,17 @@ const BusinessDashboardView = {
             }
 
             return `
-                <div onclick="${isOutOfStock ? '' : `BusinessDashboardView.addToPosCart('${p.id}')`}" class="p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50 border-slate-200' : 'cursor-pointer bg-white border-slate-200/90 hover:border-amber-400 hover:shadow-xs active:scale-[0.98] group'}">
+                <div onclick="${isOutOfStock ? '' : `BusinessDashboardView.addToPosCart('${p.id}')`}" class="p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50 border-slate-200' : inCart ? 'cursor-pointer bg-amber-50/20 border-amber-400 ring-2 ring-amber-300 shadow-xs' : 'cursor-pointer bg-white border-slate-200/90 hover:border-amber-400 hover:shadow-xs active:scale-[0.98] group'}">
                     <div>
                         <div class="flex items-start justify-between gap-1.5 mb-1.5">
                             <span class="text-[10px] text-slate-400 font-medium truncate">${this.escapeHtml(catName)}</span>
-                            ${inCart ? `<span class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-[#FFDD2D] text-[#101114] shrink-0">${inCart.qty} əd</span>` : ''}
+                            ${inCart ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#FFDD2D] text-[#101114] shadow-2xs shrink-0">Səbətdə: ${inCart.qty}</span>` : ''}
                         </div>
                         <h4 class="text-xs font-bold text-slate-900 group-hover:text-amber-700 transition line-clamp-2 leading-snug">${this.escapeHtml(p.name)}</h4>
                         ${p.sku ? `<span class="text-[10px] text-slate-400 font-mono block mt-0.5">${this.escapeHtml(p.sku)}</span>` : ''}
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
                         <span class="text-xs font-black text-slate-900 font-mono">${price.toFixed(2)} ₼</span>
                         ${stockBadge}
                     </div>
@@ -44235,11 +44250,17 @@ const BusinessDashboardView = {
     },
 
     setPosDiscountValue: function(val) {
-        const num = Math.max(0, parseFloat(val) || 0);
-        if (this.posDiscountType === 'percent') {
-            this.posDiscountPercent = Math.min(100, num);
+        const raw = String(val !== undefined && val !== null ? val : '').trim();
+        if (!raw) {
+            this.posDiscountPercent = 0;
+            this.posDiscountAmount = 0;
         } else {
-            this.posDiscountAmount = num;
+            const num = Math.max(0, parseFloat(raw) || 0);
+            if (this.posDiscountType === 'percent') {
+                this.posDiscountPercent = Math.min(100, num);
+            } else {
+                this.posDiscountAmount = num;
+            }
         }
         this.renderPosCartUi();
     },
@@ -44296,9 +44317,29 @@ const BusinessDashboardView = {
             itemsCountBadge.textContent = this.posCart.reduce((acc, it) => acc + it.qty, 0);
         }
 
+        // Synchronize discount type toggle buttons in DOM
+        const btnPercent = document.getElementById('posDiscTypePercent');
+        const btnFixed = document.getElementById('posDiscTypeFixed');
+        if (btnPercent && btnFixed) {
+            if (this.posDiscountType === 'percent') {
+                btnPercent.className = 'px-2 py-0.5 rounded bg-[#FFDD2D] text-[#101114] font-bold cursor-pointer transition';
+                btnFixed.className = 'px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 font-bold cursor-pointer transition';
+            } else {
+                btnPercent.className = 'px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 font-bold cursor-pointer transition';
+                btnFixed.className = 'px-2 py-0.5 rounded bg-[#FFDD2D] text-[#101114] font-bold cursor-pointer transition';
+            }
+        }
+
+        // Synchronize discount input if not active element
+        const discInput = document.getElementById('posDiscountInput');
+        if (discInput && document.activeElement !== discInput) {
+            const currentVal = this.posDiscountType === 'percent' ? this.posDiscountPercent : this.posDiscountAmount;
+            discInput.value = currentVal > 0 ? currentVal : '';
+        }
+
         if (this.posCart.length === 0) {
             listEl.innerHTML = `
-                <div class="py-10 text-center text-slate-400 space-y-2">
+                <div class="py-8 text-center text-slate-400 space-y-2">
                     <svg class="w-8 h-8 mx-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     <p class="text-xs font-semibold text-slate-600">Səbət boşdur</p>
                     <p class="text-[11px] text-slate-400">Sol tərəfdən məhsul seçin və ya axtarın</p>
@@ -44309,30 +44350,24 @@ const BusinessDashboardView = {
             listEl.innerHTML = this.posCart.map(it => {
                 const lineTotal = it.qty * it.price;
                 return `
-                    <div class="py-2.5 flex items-center justify-between gap-2">
-                        <div class="min-w-0 flex-1">
-                            <h5 class="text-xs font-bold text-slate-900 truncate">${this.escapeHtml(it.name)}</h5>
+                    <div class="py-2.5 flex flex-col gap-1 border-b border-slate-100 last:border-b-0">
+                        <div class="flex items-start justify-between gap-2">
+                            <h5 class="text-xs font-bold text-slate-900 leading-snug line-clamp-2">${this.escapeHtml(it.name)}</h5>
+                            <button type="button" onclick="BusinessDashboardView.removeFromPosCart('${it.productId}')" class="text-slate-300 hover:text-rose-500 transition p-1 cursor-pointer shrink-0" title="Sil">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between text-xs pt-0.5">
                             <span class="text-[11px] text-slate-400 font-mono">${it.price.toFixed(2)} ₼ / ${this.escapeHtml(it.unit)}</span>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-1 shrink-0 bg-slate-100 rounded-lg p-0.5">
+                                    <button type="button" onclick="BusinessDashboardView.updatePosCartQty('${it.productId}', ${it.qty - 1})" class="w-5 h-5 rounded bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition cursor-pointer">-</button>
+                                    <span class="w-6 text-center text-xs font-bold text-slate-900 font-mono">${it.qty}</span>
+                                    <button type="button" onclick="BusinessDashboardView.updatePosCartQty('${it.productId}', ${it.qty + 1})" class="w-5 h-5 rounded bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition cursor-pointer">+</button>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 font-mono min-w-[55px] text-right">${lineTotal.toFixed(2)} ₼</span>
+                            </div>
                         </div>
-
-                        <!-- Stepper -->
-                        <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 rounded-lg p-0.5">
-                            <button type="button" onclick="BusinessDashboardView.updatePosCartQty('${it.productId}', ${it.qty - 1})" class="w-6 h-6 rounded-md bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition cursor-pointer">
-                                -
-                            </button>
-                            <span class="w-6 text-center text-xs font-bold text-slate-900 font-mono">${it.qty}</span>
-                            <button type="button" onclick="BusinessDashboardView.updatePosCartQty('${it.productId}', ${it.qty + 1})" class="w-6 h-6 rounded-md bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition cursor-pointer">
-                                +
-                            </button>
-                        </div>
-
-                        <div class="text-right shrink-0 min-w-[60px]">
-                            <span class="text-xs font-bold text-slate-900 font-mono block">${lineTotal.toFixed(2)} ₼</span>
-                        </div>
-
-                        <button type="button" onclick="BusinessDashboardView.removeFromPosCart('${it.productId}')" class="text-slate-300 hover:text-rose-500 transition p-1 cursor-pointer shrink-0" title="Sil">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
                     </div>
                 `;
             }).join('');
@@ -44357,9 +44392,9 @@ const BusinessDashboardView = {
             const btn = document.getElementById(`posPayMethod_${m}`);
             if (btn) {
                 if (this.posPaymentMethod === m) {
-                    btn.className = "p-2 rounded-xl border border-[#101114] bg-[#101114] text-white text-center text-xs font-bold transition shadow-2xs cursor-pointer";
+                    btn.className = "py-1.5 px-1 rounded-xl border border-[#101114] bg-[#101114] text-white text-center text-xs font-bold transition shadow-2xs cursor-pointer";
                 } else {
-                    btn.className = "p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-center text-xs font-semibold transition cursor-pointer";
+                    btn.className = "py-1.5 px-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-center text-xs font-semibold transition cursor-pointer";
                 }
             }
         });
@@ -44640,13 +44675,13 @@ const BusinessDashboardView = {
                  1. POS TERMINAL / KASSA SATIŞI MODAL
                  (GEMINI.md Rule 5 compliant: Clean header, no icons)
             =========================================== -->
-            <div id="bizPosModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
-                <div class="bg-white rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div id="bizPosModal" class="hidden fixed inset-0 z-50 overflow-hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+                <div class="bg-white rounded-3xl max-w-6xl w-full h-[88vh] max-h-[820px] min-h-[560px] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                     <!-- Clean Header (Strictly compliant with GEMINI.md - Rule 5) -->
-                    <div class="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0">
+                    <div class="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-3.5 shrink-0 bg-white">
                         <div>
-                            <h3 class="text-base sm:text-lg font-bold text-slate-900">Kassa satışı (POS Terminal)</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Məhsulların sürətli satışı, anbar silinməsi və kassa mədaxili</p>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900">Kassa satışı (POS terminal)</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Məhsulların sürətli pərakəndə satışı və kassa mədaxili</p>
                         </div>
                         <button type="button" onclick="BusinessDashboardView.closePosModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer" title="Bağla">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
@@ -44654,30 +44689,30 @@ const BusinessDashboardView = {
                     </div>
 
                     <!-- Body 2-Column Grid -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-0 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
                         <!-- LEFT: Catalog & Products (7 cols) -->
-                        <div class="lg:col-span-7 flex flex-col overflow-hidden p-4 sm:p-5 space-y-3.5">
+                        <div class="lg:col-span-7 flex flex-col h-full min-h-0 overflow-hidden p-4 sm:p-5 space-y-3">
                             <!-- Search & Filter Bar -->
-                            <div class="space-y-2.5 shrink-0">
+                            <div class="space-y-2 shrink-0">
                                 <div class="relative">
                                     <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                    <input type="text" id="posSearchInput" oninput="BusinessDashboardView.onPosSearch(this.value)" placeholder="Məhsul adı, barkod və ya artikul..." class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-xs font-medium focus:border-[#FFDD2D] focus:ring-1 focus:ring-[#FFDD2D] outline-none bg-slate-50/50 focus:bg-white transition" />
+                                    <input type="text" id="posSearchInput" oninput="BusinessDashboardView.onPosSearch(this.value)" placeholder="Məhsul adı, barkod və ya artikul..." class="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 text-xs font-medium focus:border-[#FFDD2D] focus:ring-1 focus:ring-[#FFDD2D] outline-none bg-slate-50/50 focus:bg-white transition" />
                                 </div>
-                                <div id="posCategoryPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                                <div id="posCategoryPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none shrink-0">
                                     <!-- Populated dynamically -->
                                 </div>
                             </div>
 
                             <!-- Products Grid -->
-                            <div id="posProductsGrid" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2.5 pr-1 min-h-[300px]">
+                            <div id="posProductsGrid" class="flex-1 min-h-0 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2.5 pr-1 content-start">
                                 <!-- Populated dynamically -->
                             </div>
                         </div>
 
                         <!-- RIGHT: Cart & Checkout (5 cols) -->
-                        <div class="lg:col-span-5 flex flex-col overflow-hidden p-4 sm:p-5 bg-slate-50/40 space-y-3.5">
+                        <div class="lg:col-span-5 flex flex-col h-full min-h-0 overflow-hidden p-4 sm:p-5 bg-slate-50/40 space-y-3">
                             <!-- Customer & Seller Selectors -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 shrink-0">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 shrink-0">
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Alıcı (Müştəri)</label>
                                     <select id="posClientSelect" onchange="BusinessDashboardView.setPosClient(this.value)" class="w-full h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 outline-none">
@@ -44685,7 +44720,7 @@ const BusinessDashboardView = {
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Satıcı (Usta / Kassir)</label>
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Satıcı / Kassir</label>
                                     <select id="posSellerSelect" onchange="BusinessDashboardView.setPosSeller(this.value)" class="w-full h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 outline-none">
                                         <!-- Populated dynamically -->
                                     </select>
@@ -44693,7 +44728,7 @@ const BusinessDashboardView = {
                             </div>
 
                             <!-- Cart Items Box -->
-                            <div class="flex-1 flex flex-col overflow-hidden bg-white rounded-2xl border border-slate-200/80 p-3 shadow-2xs space-y-2 min-h-[160px]">
+                            <div class="flex-1 min-h-0 flex flex-col overflow-hidden bg-white rounded-2xl border border-slate-200/80 p-3 shadow-2xs space-y-1.5">
                                 <div class="flex items-center justify-between shrink-0 pb-1.5 border-b border-slate-100">
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-xs font-bold text-slate-800">Səbət</span>
@@ -44703,72 +44738,73 @@ const BusinessDashboardView = {
                                         Təmizlə
                                     </button>
                                 </div>
-                                <div id="posCartItemsList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pr-1">
+                                <div id="posCartItemsList" class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 pr-1">
                                     <!-- Populated dynamically -->
                                 </div>
                             </div>
 
-                            <!-- Discounts & Totals -->
-                            <div class="bg-white rounded-2xl border border-slate-200/80 p-3 space-y-2 shrink-0">
-                                <div class="flex items-center justify-between text-xs text-slate-500">
-                                    <span>Məhsul cəmi:</span>
-                                    <span id="posSubtotalDisplay" class="font-bold text-slate-800 font-mono">0.00 ₼</span>
-                                </div>
+                            <!-- Checkout Controls (Pinned at bottom) -->
+                            <div class="shrink-0 space-y-2">
+                                <!-- Totals & Discount -->
+                                <div class="bg-white rounded-2xl border border-slate-200/80 p-3 space-y-1.5">
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span>Məhsul cəmi:</span>
+                                        <span id="posSubtotalDisplay" class="font-bold text-slate-800 font-mono">0.00 ₼</span>
+                                    </div>
 
-                                <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
-                                    <span class="text-xs font-semibold text-slate-600 shrink-0">Endirim:</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" min="0" step="any" id="posDiscountInput" oninput="BusinessDashboardView.setPosDiscountValue(this.value)" placeholder="0" class="w-20 h-7 px-2 rounded-lg border border-slate-200 text-xs font-mono font-bold text-right outline-none focus:border-amber-400" />
-                                        <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-[10px] font-bold">
-                                            <button type="button" onclick="BusinessDashboardView.setPosDiscountType('percent')" class="px-2 py-0.5 rounded ${this.posDiscountType === 'percent' ? 'bg-[#FFDD2D] text-[#101114]' : 'text-slate-600'} cursor-pointer">%</button>
-                                            <button type="button" onclick="BusinessDashboardView.setPosDiscountType('fixed')" class="px-2 py-0.5 rounded ${this.posDiscountType === 'fixed' ? 'bg-[#FFDD2D] text-[#101114]' : 'text-slate-600'} cursor-pointer">₼</button>
+                                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                                        <span class="text-xs font-semibold text-slate-600 shrink-0">Endirim:</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" step="any" id="posDiscountInput" oninput="BusinessDashboardView.setPosDiscountValue(this.value)" placeholder="0" class="w-20 h-7 px-2 rounded-lg border border-slate-200 text-xs font-mono font-bold text-right outline-none focus:border-amber-400" />
+                                            <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-[10px] font-bold">
+                                                <button type="button" id="posDiscTypePercent" onclick="BusinessDashboardView.setPosDiscountType('percent')" class="px-2 py-0.5 rounded bg-[#FFDD2D] text-[#101114] font-bold cursor-pointer transition">%</button>
+                                                <button type="button" id="posDiscTypeFixed" onclick="BusinessDashboardView.setPosDiscountType('fixed')" class="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900 font-bold cursor-pointer transition">₼</button>
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <div id="posDiscountRowDisplay" class="hidden flex items-center justify-between text-xs text-amber-700">
+                                        <span>Tətbiq edilən endirim:</span>
+                                        <span id="posDiscountAmountText" class="font-bold font-mono">- 0.00 ₼</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-1.5 border-t border-slate-200">
+                                        <span class="text-xs sm:text-sm font-bold text-slate-900">Yekun məbləğ</span>
+                                        <span id="posFinalTotalDisplay" class="text-lg sm:text-xl font-black text-slate-900 font-mono">0.00 ₼</span>
                                     </div>
                                 </div>
 
-                                <div id="posDiscountRowDisplay" class="hidden flex items-center justify-between text-xs text-amber-700">
-                                    <span>Tətbiq edilən endirim:</span>
-                                    <span id="posDiscountAmountText" class="font-bold font-mono">- 0.00 ₼</span>
+                                <!-- Payment Method Selector -->
+                                <div class="space-y-1.5">
+                                    <div class="grid grid-cols-4 gap-1.5">
+                                        <button type="button" id="posPayMethod_cash" onclick="BusinessDashboardView.setPosPaymentMethod('cash')" class="py-1.5 px-1 rounded-xl border border-[#101114] bg-[#101114] text-white text-center text-xs font-bold transition shadow-2xs cursor-pointer">
+                                            Nağd
+                                        </button>
+                                        <button type="button" id="posPayMethod_terminal" onclick="BusinessDashboardView.setPosPaymentMethod('terminal')" class="py-1.5 px-1 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
+                                            Terminal
+                                        </button>
+                                        <button type="button" id="posPayMethod_deposit" onclick="BusinessDashboardView.setPosPaymentMethod('deposit')" class="py-1.5 px-1 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
+                                            Depozit
+                                        </button>
+                                        <button type="button" id="posPayMethod_bonus" onclick="BusinessDashboardView.setPosPaymentMethod('bonus')" class="py-1.5 px-1 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
+                                            Bonus
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <select id="posAccountSelect" onchange="BusinessDashboardView.setPosAccount(this.value)" class="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 outline-none">
+                                            <!-- Populated dynamically -->
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-200">
-                                    <span class="text-sm font-bold text-slate-900">Yekun məbləğ</span>
-                                    <span id="posFinalTotalDisplay" class="text-xl font-black text-slate-900 font-mono">0.00 ₼</span>
-                                </div>
-                            </div>
-
-                            <!-- Payment Method Selector -->
-                            <div class="space-y-1.5 shrink-0">
-                                <label class="block text-[11px] font-bold text-slate-600">Ödəniş üsulu</label>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                                    <button type="button" id="posPayMethod_cash" onclick="BusinessDashboardView.setPosPaymentMethod('cash')" class="p-2 rounded-xl border border-[#101114] bg-[#101114] text-white text-center text-xs font-bold transition shadow-2xs cursor-pointer">
-                                        Nağd
-                                    </button>
-                                    <button type="button" id="posPayMethod_terminal" onclick="BusinessDashboardView.setPosPaymentMethod('terminal')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
-                                        POS-Terminal
-                                    </button>
-                                    <button type="button" id="posPayMethod_deposit" onclick="BusinessDashboardView.setPosPaymentMethod('deposit')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
-                                        Depozit
-                                    </button>
-                                    <button type="button" id="posPayMethod_bonus" onclick="BusinessDashboardView.setPosPaymentMethod('bonus')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
-                                        Bonus
+                                <!-- Submit / Pay Button -->
+                                <div>
+                                    <button type="button" id="posSubmitBtn" onclick="BusinessDashboardView.completePosSale()" class="w-full h-11 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold text-xs sm:text-sm transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        <span id="posSubmitBtnText">Ödənişi tamamla (0.00 ₼)</span>
                                     </button>
                                 </div>
-
-                                <div class="pt-1">
-                                    <label class="block text-[10px] text-slate-400 font-medium mb-0.5">Kassa / Bank hesabı</label>
-                                    <select id="posAccountSelect" onchange="BusinessDashboardView.setPosAccount(this.value)" class="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 outline-none">
-                                        <!-- Populated dynamically -->
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Submit / Pay Button -->
-                            <div class="shrink-0 pt-1">
-                                <button type="button" id="posSubmitBtn" onclick="BusinessDashboardView.completePosSale()" class="w-full h-11 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold text-xs sm:text-sm transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    <span id="posSubmitBtnText">Ödənişi tamamla (0.00 ₼)</span>
-                                </button>
                             </div>
                         </div>
                     </div>
