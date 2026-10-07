@@ -7021,21 +7021,18 @@ const BusinessDashboardView = {
                     </div>
                 </div>
 
-                <!-- Pending Online Bookings Alert Banner (shown when in daily or weekly view) -->
+                <!-- Pending Online Bookings Alert Banner (sleek, compact single-line banner) -->
                 ${(pendingOnlineCount > 0 && this.calendarViewMode !== 'pending_online') ? `
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/95 border border-amber-200/90 flex items-center justify-between gap-4 text-xs shadow-2xs">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <div class="truncate">
-                                <div class="font-bold text-slate-900 sm:text-sm">${pendingOnlineCount} onlayn qəbul müraciəti təsdiq gözləyir</div>
-                                <p class="text-slate-500 text-[11px] sm:text-xs truncate">Müştərilər tərəfindən platformadan göndərilmiş yeni rezervasiyalar</p>
-                            </div>
+                    <div class="py-2 px-3 sm:px-4 rounded-xl bg-amber-50/95 border border-amber-200/80 flex items-center justify-between gap-3 text-xs shadow-2xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                            <svg class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="font-bold text-slate-900 truncate">${pendingOnlineCount} onlayn müraciət təsdiq gözləyir</span>
+                            <span class="text-slate-500 text-[11px] truncate hidden md:inline">• Platformadan göndərilib</span>
                         </div>
-                        <button type="button" onclick="BusinessDashboardView.setCalendarViewMode('pending_online')" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-amber-100 text-slate-900 font-bold border border-amber-300 shadow-2xs transition shrink-0 cursor-pointer text-xs sm:text-sm flex items-center gap-2 active:scale-95">
+                        <button type="button" onclick="BusinessDashboardView.setCalendarViewMode('pending_online')" class="h-7.5 px-3 rounded-lg bg-white hover:bg-amber-100 text-slate-900 font-semibold border border-amber-300 text-xs shadow-2xs transition shrink-0 cursor-pointer inline-flex items-center gap-1 active:scale-95">
                             <span>Müraciətlərə bax (${pendingOnlineCount})</span>
-                            <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
                 ` : ''}
