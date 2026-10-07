@@ -178,7 +178,7 @@ const BusinessDashboardView = {
                 }
             });
 
-            // Ensure today has multiple appointments with different statuses for immediate visual clarity
+            // Ensure today has multiple appointments with different statuses without ANY time collision
             const todayBookings = list.filter(b => b.date === todayStr);
             if (todayBookings.length < 5 && list.length >= 6) {
                 const sampleStatuses = ['Təsdiqləndi', 'Gözlənilir', 'Gəldi', 'Tamamlandı', 'Ləğv edildi', 'Gəlmədi'];
@@ -187,9 +187,56 @@ const BusinessDashboardView = {
                     list[i].date = todayStr;
                     list[i].time = sampleTimes[i] || list[i].time;
                     list[i].startHour = parseInt(list[i].time.split(':')[0]) || 10;
+                    list[i].durationMinutes = 60;
+                    list[i].durationHours = 1;
                     list[i].status = sampleStatuses[i] || list[i].status;
                 }
             }
+
+            // Conflict sanitizer: prevent any double-booking for the same master on the same date
+            try {
+                const masterDateMap = {};
+                list.forEach(b => {
+                    if (b.status === 'Ləğv edildi' || !b.date || !b.time) return;
+                    const mKey = b.masterId || b.masterKey || (b.masterName ? b.masterName.trim().toLowerCase() : 'master');
+                    const groupKey = String(b.date) + '_' + String(mKey);
+                    if (!masterDateMap[groupKey]) masterDateMap[groupKey] = [];
+                    masterDateMap[groupKey].push(b);
+                });
+
+                let modifiedAny = false;
+                Object.values(masterDateMap).forEach(group => {
+                    if (group.length <= 1) return;
+                    group.sort((a, b) => {
+                        const aStart = (parseInt(a.time.split(':')[0]) || 0) * 60 + (parseInt(a.time.split(':')[1]) || 0);
+                        const bStart = (parseInt(b.time.split(':')[0]) || 0) * 60 + (parseInt(b.time.split(':')[1]) || 0);
+                        return aStart - bStart;
+                    });
+
+                    for (let i = 0; i < group.length - 1; i++) {
+                        const b1 = group[i];
+                        const b2 = group[i + 1];
+                        const b1Start = (parseInt(b1.time.split(':')[0]) || 0) * 60 + (parseInt(b1.time.split(':')[1]) || 0);
+                        const b1Dur = b1.durationMinutes || (b1.durationHours ? Math.round(b1.durationHours * 60) : 60);
+                        const b1End = b1Start + b1Dur;
+
+                        const b2Start = (parseInt(b2.time.split(':')[0]) || 0) * 60 + (parseInt(b2.time.split(':')[1]) || 0);
+
+                        if (b1End > b2Start) {
+                            const newDur = Math.max(30, b2Start - b1Start);
+                            b1.durationMinutes = newDur;
+                            b1.durationHours = newDur / 60;
+                            modifiedAny = true;
+                        }
+                    }
+                });
+
+                if (modifiedAny) {
+                    try {
+                        localStorage.setItem('zeyvo_business_bookings_v3', JSON.stringify(list));
+                    } catch (e) {}
+                }
+            } catch (err) {}
 
             // Synchronize with client-side user bookings if any exist
             try {
@@ -7129,16 +7176,177 @@ const BusinessDashboardView = {
         if (st.includes('tamam') || st.includes('completed')) {
             return `<svg class="w-3 h-3 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
         }
-        if (st.includes('gözlənilir') || st.includes('pending')) {
-            return `<svg class="w-3 h-3 opacity-90 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+        if (st.includes('gözlənilir') || st.includes('pending') || st.includes('plan')) {
+            return `<svg class="w-3 h-3 opacity-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
         }
         if (st.includes('ləğv') || st.includes('cancel')) {
             return `<svg class="w-3 h-3 text-rose-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
         }
         if (st.includes('gəldi') || st.includes('salondadır')) {
-            return `<svg class="w-3 h-3 text-amber-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>`;
+            return `<svg class="w-3 h-3 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>`;
         }
         return `<svg class="w-3 h-3 opacity-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+    },
+
+    // ----------------------------------------------------
+    // TIME & DOUBLE-BOOKING CONFLICT PREVENTION
+    // ----------------------------------------------------
+    parseTimeToMinutes: function(tStr) {
+        if (!tStr) return 0;
+        const clean = tStr.split('–')[0].split('-')[0].trim();
+        const parts = clean.split(':');
+        return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    },
+
+    formatMinutesToTime: function(min) {
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    },
+
+    findBookingTimeConflict: function(masterId, date, time, durationMinutes, excludeBookingId) {
+        if (!date || !time) return null;
+        const staffList = this.getStaffList ? this.getStaffList() : [];
+        const masterObj = staffList.find(m => m.id === masterId) || { id: masterId, name: 'Usta' };
+
+        const reqStart = this.parseTimeToMinutes(time);
+        const reqDur = parseInt(durationMinutes, 10) || 30;
+        const reqEnd = reqStart + reqDur;
+
+        const bookings = this.getBookings();
+        for (const b of bookings) {
+            if (excludeBookingId && b.id === excludeBookingId) continue;
+            if (b.date !== date) continue;
+            if (b.status === 'Ləğv edildi') continue;
+
+            // Check if for this master
+            if (!this.isBookingForMaster(b, masterObj)) continue;
+
+            const bStart = this.parseTimeToMinutes(b.time);
+            const bDur = b.durationMinutes || (b.durationHours ? Math.round(b.durationHours * 60) : 30);
+            const bEnd = bStart + bDur;
+
+            // Overlap check: reqStart < bEnd && reqEnd > bStart
+            if (reqStart < bEnd && reqEnd > bStart) {
+                return {
+                    conflictingBooking: b,
+                    timeRange: this.getBookingTimeRange(b),
+                    clientName: b.clientName || 'Müştəri',
+                    service: b.service || 'Xidmət',
+                    masterName: masterObj.name || (b.masterName || 'Usta')
+                };
+            }
+        }
+        return null;
+    },
+
+    checkBookingConflictRealtime: function() {
+        const masterEl = document.getElementById('bmMasterId');
+        const dateEl = document.getElementById('bmDate');
+        const timeEl = document.getElementById('bmTime');
+        const durEl = document.getElementById('bmDuration');
+        const warningBox = document.getElementById('bmConflictWarning');
+        const submitBtn = document.getElementById('bmSubmitBtn');
+
+        if (!masterEl || !dateEl || !timeEl || !durEl) return;
+
+        const conflict = this.findBookingTimeConflict(
+            masterEl.value,
+            dateEl.value,
+            timeEl.value,
+            parseInt(durEl.value, 10) || 30,
+            this.bookingEditingId
+        );
+
+        if (warningBox) {
+            if (conflict) {
+                warningBox.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <div class="leading-tight">
+                            <span class="font-bold text-rose-900 block">Bu vaxt aralığında ustanın artıq qəbulu var!</span>
+                            <span class="text-rose-700 block mt-1 text-[11px]">${conflict.timeRange} — ${conflict.clientName} (${conflict.service})</span>
+                            <span class="text-rose-600 font-medium block mt-1 text-[10px]">Bir vaxtda eyni ustaya iki seans yazmaq olmaz. Zəhmət olmasa başqa saat və ya başqa usta seçin.</span>
+                        </div>
+                    </div>
+                `;
+                warningBox.classList.remove('hidden');
+                timeEl.classList.add('border-rose-400', 'bg-rose-50/30');
+            } else {
+                warningBox.innerHTML = '';
+                warningBox.classList.add('hidden');
+                timeEl.classList.remove('border-rose-400', 'bg-rose-50/30');
+            }
+        }
+
+        if (submitBtn) {
+            if (conflict) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.title = 'Seçilmiş saatda ustanın artıq qəbulu var';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.title = '';
+            }
+        }
+    },
+
+    computeOverlappingColumns: function(bookings) {
+        if (!bookings || bookings.length === 0) return [];
+        const items = bookings.map(b => {
+            const bStartHour = b.startHour !== undefined ? Math.floor(b.startHour) : (b.time ? parseInt(b.time.split(':')[0]) : 9);
+            const bStartMin = (b.time && b.time.includes(':')) ? parseInt(b.time.split(':')[1]) : (b.startMin !== undefined ? b.startMin : (b.startHour ? Math.round((b.startHour - Math.floor(b.startHour)) * 60) : 0));
+            const durMin = b.durationMinutes || (b.durationHours ? Math.round(b.durationHours * 60) : 30);
+            const start = bStartHour * 60 + bStartMin;
+            const end = start + durMin;
+            return { booking: b, start, end, col: 0, totalCols: 1 };
+        });
+
+        items.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+
+        const clusters = [];
+        let currentCluster = [];
+        let clusterEnd = -1;
+
+        items.forEach(item => {
+            if (currentCluster.length === 0 || item.start < clusterEnd) {
+                currentCluster.push(item);
+                clusterEnd = Math.max(clusterEnd, item.end);
+            } else {
+                clusters.push(currentCluster);
+                currentCluster = [item];
+                clusterEnd = item.end;
+            }
+        });
+        if (currentCluster.length > 0) {
+            clusters.push(currentCluster);
+        }
+
+        clusters.forEach(cluster => {
+            const columns = [];
+            cluster.forEach(item => {
+                let placed = false;
+                for (let c = 0; c < columns.length; c++) {
+                    if (columns[c] <= item.start) {
+                        item.col = c;
+                        columns[c] = item.end;
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) {
+                    item.col = columns.length;
+                    columns.push(item.end);
+                }
+            });
+            const total = columns.length;
+            cluster.forEach(item => {
+                item.totalCols = total;
+            });
+        });
+
+        return items;
     },
 
     // 1. DAILY MASTERS TIMELINE VIEW (EASYWEEK STYLE)
@@ -7240,53 +7448,66 @@ const BusinessDashboardView = {
                                             </div>
                                         `).join('')}
 
-                                        <!-- Rendered Bookings in this Master Column (EasyWeek Styled Cards) -->
-                                        ${mBookings.map(b => {
-                                            const bStartHour = b.startHour !== undefined ? Math.floor(b.startHour) : (b.time ? parseInt(b.time.split(':')[0]) : 9);
-                                            const bStartMin = (b.time && b.time.includes(':')) ? parseInt(b.time.split(':')[1]) : (b.startMin !== undefined ? b.startMin : (b.startHour ? Math.round((b.startHour - Math.floor(b.startHour)) * 60) : 0));
-                                            const durationH = b.durationHours || (b.durationMinutes ? b.durationMinutes / 60 : 0.75);
-                                            const topOffset = Math.max(0, (bStartHour - startHour) * slotHeight + (bStartMin / 60) * slotHeight);
-                                            const blockHeight = Math.max(52, durationH * slotHeight - 4);
+                                        <!-- Rendered Bookings in this Master Column (Non-overlapping & Overlap-safe) -->
+                                        ${(() => {
+                                            const layoutItems = this.computeOverlappingColumns(mBookings);
+                                            return layoutItems.map(item => {
+                                                const b = item.booking;
+                                                const bStartHour = b.startHour !== undefined ? Math.floor(b.startHour) : (b.time ? parseInt(b.time.split(':')[0]) : 9);
+                                                const bStartMin = (b.time && b.time.includes(':')) ? parseInt(b.time.split(':')[1]) : (b.startMin !== undefined ? b.startMin : (b.startHour ? Math.round((b.startHour - Math.floor(b.startHour)) * 60) : 0));
+                                                const durationH = b.durationHours || (b.durationMinutes ? b.durationMinutes / 60 : 0.75);
+                                                const topOffset = Math.max(0, (bStartHour - startHour) * slotHeight + (bStartMin / 60) * slotHeight);
+                                                const blockHeight = Math.max(52, durationH * slotHeight - 4);
 
-                                            const theme = this.getBookingColorTheme(b);
-                                            const timeRange = this.getBookingTimeRange(b);
-                                            const statusIcon = this.getBookingStatusIconSvg(b.status);
+                                                const theme = this.getBookingColorTheme(b);
+                                                const timeRange = this.getBookingTimeRange(b);
+                                                const statusIcon = this.getBookingStatusIconSvg(b.status);
 
-                                            return `
-                                                <div style="top: ${topOffset}px; height: ${blockHeight}px;"
-                                                     class="absolute inset-x-1 sm:inset-x-1.5 rounded-xl border flex flex-col shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden z-10 ${theme.border} ${theme.bg}"
-                                                     onclick="event.stopPropagation(); BusinessDashboardView.openBookingModal('${b.id}')">
-                                                    
-                                                    <!-- EasyWeek Saturated Header Bar -->
-                                                    <div class="h-5 px-2 flex items-center justify-between text-[10px] font-bold shrink-0 select-none ${theme.headerBg}">
-                                                        <span class="truncate tracking-tight">${timeRange}</span>
-                                                        <div class="flex items-center gap-1 shrink-0 ml-1">
-                                                            ${b.note ? `<svg class="w-2.5 h-2.5 opacity-85" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
-                                                            ${statusIcon}
+                                                const totalCols = item.totalCols || 1;
+                                                const colIdx = item.col || 0;
+                                                const colWidthPercent = 100 / totalCols;
+                                                const leftPercent = colIdx * colWidthPercent;
+                                                const stylePosition = totalCols > 1
+                                                    ? `top: ${topOffset}px; height: ${blockHeight}px; left: calc(${leftPercent}% + 2px); width: calc(${colWidthPercent}% - 4px);`
+                                                    : `top: ${topOffset}px; height: ${blockHeight}px; left: 4px; right: 4px;`;
+
+                                                return `
+                                                    <div style="${stylePosition}"
+                                                         class="absolute rounded-xl border flex flex-col shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden z-10 ${theme.border} ${theme.bg}"
+                                                         onclick="event.stopPropagation(); BusinessDashboardView.openBookingModal('${b.id}')">
+                                                        
+                                                        <!-- EasyWeek Saturated Header Bar -->
+                                                        <div class="h-5 px-2 flex items-center justify-between text-[10px] font-bold shrink-0 select-none ${theme.headerBg}">
+                                                            <span class="truncate tracking-tight">${timeRange}</span>
+                                                            <div class="flex items-center gap-1 shrink-0 ml-1">
+                                                                ${totalCols > 1 ? `<span class="text-[9px] bg-rose-600 text-white px-1 py-0.2 rounded font-bold" title="Vaxt toqquşması!">Toqquşma</span>` : ''}
+                                                                ${b.note ? `<svg class="w-2.5 h-2.5 opacity-85" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
+                                                                ${statusIcon}
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- EasyWeek Matching Tinted Body -->
+                                                        <div class="p-1.5 sm:p-2 flex-1 flex flex-col justify-between min-w-0" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
+                                                            <div class="min-w-0">
+                                                                <div class="flex items-baseline justify-between gap-1">
+                                                                    <span class="text-[11px] sm:text-xs font-bold truncate leading-tight ${theme.titleColor}">${b.clientName || 'Müştəri'}</span>
+                                                                    ${b.price ? `<span class="text-[10px] sm:text-[11px] font-bold font-mono shrink-0 ${theme.priceColor}">${b.price} ₼</span>` : ''}
+                                                                </div>
+                                                                <div class="text-[10px] font-medium truncate mt-0.5 ${theme.serviceColor}">
+                                                                    ${b.service || 'Xidmət'}
+                                                                </div>
+                                                            </div>
+                                                            ${blockHeight >= 62 ? `
+                                                                <div class="flex items-center justify-between text-[9px] font-mono mt-1 ${theme.subColor}">
+                                                                    <span class="truncate">${b.masterName ? b.masterName.split(' ')[0] : (b.phone || '')}</span>
+                                                                    <span class="px-1.5 py-0.2 rounded font-semibold text-[9px] shrink-0 ${theme.badgeBg}">${b.status || 'Təsdiqləndi'}</span>
+                                                                </div>
+                                                            ` : ''}
                                                         </div>
                                                     </div>
-
-                                                    <!-- EasyWeek Matching Tinted Body -->
-                                                    <div class="p-1.5 sm:p-2 flex-1 flex flex-col justify-between min-w-0" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
-                                                        <div class="min-w-0">
-                                                            <div class="flex items-baseline justify-between gap-1">
-                                                                <span class="text-[11px] sm:text-xs font-bold truncate leading-tight ${theme.titleColor}">${b.clientName || 'Müştəri'}</span>
-                                                                ${b.price ? `<span class="text-[10px] sm:text-[11px] font-bold font-mono shrink-0 ${theme.priceColor}">${b.price} ₼</span>` : ''}
-                                                            </div>
-                                                            <div class="text-[10px] font-medium truncate mt-0.5 ${theme.serviceColor}">
-                                                                ${b.service || 'Xidmət'}
-                                                            </div>
-                                                        </div>
-                                                        ${blockHeight >= 62 ? `
-                                                            <div class="flex items-center justify-between text-[9px] font-mono mt-1 ${theme.subColor}">
-                                                                <span class="truncate">${b.masterName ? b.masterName.split(' ')[0] : (b.phone || '')}</span>
-                                                                <span class="px-1.5 py-0.2 rounded font-semibold text-[9px] shrink-0 ${theme.badgeBg}">${b.status || 'Təsdiqləndi'}</span>
-                                                            </div>
-                                                        ` : ''}
-                                                    </div>
-                                                </div>
-                                            `;
-                                        }).join('')}
+                                                `;
+                                            }).join('');
+                                        })()}
                                     </div>
                                 `;
                             }).join('')}
@@ -7782,6 +8003,7 @@ const BusinessDashboardView = {
 
         container.innerHTML = this.renderBookingModalHtml(booking, defaultDate, defaultTime, defaultMasterId, defaultClient);
         modal.classList.remove('hidden');
+        this.checkBookingConflictRealtime();
     },
 
     closeBookingModal: function() {
@@ -7975,7 +8197,7 @@ const BusinessDashboardView = {
 
                     <div class="space-y-1">
                         <label class="font-semibold text-slate-700">Mütəxəssis (Usta) *</label>
-                        <select id="bmMasterId" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 outline-none focus:border-amber-400 cursor-pointer">
+                        <select id="bmMasterId" onchange="BusinessDashboardView.updateBookingEndTimeBadge()" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 outline-none focus:border-amber-400 cursor-pointer">
                             ${staffList.map(m => {
                                 const isSel = curMasterId === m.id || curMasterId === m.key;
                                 return `<option value="${m.id}" ${isSel ? 'selected' : ''}>${m.name} (${m.role || 'Usta'})</option>`;
@@ -7988,7 +8210,7 @@ const BusinessDashboardView = {
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="space-y-1">
                         <label class="font-semibold text-slate-700">Tarix *</label>
-                        <input id="bmDate" type="date" required value="${curDate}" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 outline-none focus:border-amber-400" />
+                        <input id="bmDate" type="date" required value="${curDate}" onchange="BusinessDashboardView.updateBookingEndTimeBadge()" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 outline-none focus:border-amber-400" />
                     </div>
 
                     <div class="space-y-1">
@@ -8011,6 +8233,9 @@ const BusinessDashboardView = {
                         </select>
                     </div>
                 </div>
+
+                <!-- 3.1 Real-time Collision Warning Banner -->
+                <div id="bmConflictWarning" class="hidden p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold"></div>
 
                 <!-- 4. Price & Status -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -8117,7 +8342,7 @@ const BusinessDashboardView = {
                             </button>
                         ` : ''}
 
-                        <button type="submit" class="px-5 h-10 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold transition shadow-2xs cursor-pointer active:scale-95">
+                        <button type="submit" id="bmSubmitBtn" class="px-5 h-10 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold transition shadow-2xs cursor-pointer active:scale-95">
                             ${isEdit ? 'Yadda saxla' : 'Qəbula əlavə et'}
                         </button>
                     </div>
@@ -8261,7 +8486,7 @@ const BusinessDashboardView = {
     },
 
     updateBookingEndTimeBadge: function() {
-        // dynamic visual feedback helper
+        this.checkBookingConflictRealtime();
     },
 
     onBookingStatusChanged: function(st) {
@@ -8370,6 +8595,16 @@ const BusinessDashboardView = {
         const staffList = this.getStaffList ? this.getStaffList() : [];
         const srvObj = services.find(s => s.id === serviceId);
         const masterObj = staffList.find(m => m.id === masterId);
+
+        // Conflict check: strictly prevent recording two sessions at the same time for the same master!
+        const conflict = this.findBookingTimeConflict(masterId, date, time, duration, this.bookingEditingId);
+        if (conflict) {
+            if (typeof App !== 'undefined') {
+                App.showToast(`Xəta: ${conflict.masterName} üçün ${conflict.timeRange} saatında artıq qəbul var (${conflict.clientName}). Bir vaxta iki qəbul yazmaq olmaz!`, 'error');
+            }
+            this.checkBookingConflictRealtime();
+            return;
+        }
 
         let bookings = this.getBookings();
 
