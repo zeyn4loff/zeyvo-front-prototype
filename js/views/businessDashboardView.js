@@ -394,6 +394,12 @@ const BusinessDashboardView = {
                             <button onclick="BusinessDashboardView.toggleSidebar(false)" class="lg:hidden text-zinc-400 hover:text-white p-1" title="Bağla"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                         </div>
 
+                        <!-- Quick POS Cashier Action Button -->
+                        <button type="button" onclick="BusinessDashboardView.openPosModal()" class="w-full h-10 px-3.5 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95 group" title="Sürətli pərakəndə satış">
+                            <svg class="w-4 h-4 text-[#101114]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                            <span>Kassa satışı (POS)</span>
+                        </button>
+
                         <!-- 2. Primary Navigation Menu in Zeyvo Yellow Theme -->
                         <div>
                             <div class="text-[10px] font-bold text-zinc-500 px-2 mb-2">
@@ -6845,6 +6851,11 @@ const BusinessDashboardView = {
                  CLIENTS (CRM) MODALS
             =========================================== -->
             ${this.renderClientsModals()}
+
+            <!-- ==========================================
+                 POS (KASSA SATIŞI) TERMINAL MODALS
+            =========================================== -->
+            ${this.renderPosModals()}
         `;
     },
 
@@ -10501,7 +10512,12 @@ const BusinessDashboardView = {
             if (sub === 'balances') {
                 titleText = 'Qalıqlar';
                 subTitle = 'Stok və anbar qalıqları';
-                actionsHtml = '';
+                actionsHtml = `
+                    <button type="button" onclick="BusinessDashboardView.openPosModal()" class="h-9 px-4 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-semibold transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer" title="Sürətli kassa satışı">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        <span>Kassa satışı (POS)</span>
+                    </button>
+                `;
             } else if (sub === 'warehouses') {
                 titleText = 'Anbarlar';
                 subTitle = 'Saxlanc məntəqələri və zonalar';
@@ -10879,13 +10895,17 @@ const BusinessDashboardView = {
             } else {
                 actionBtn = `
                     <div class="flex items-center gap-2">
+                        <button type="button" onclick="BusinessDashboardView.openPosModal()" class="px-4 h-9 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95" title="Kassa satışı aç">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                            <span>Kassa satışı (POS)</span>
+                        </button>
                         <button type="button" onclick="BusinessDashboardView.openFinanceTransferModal()" class="px-3.5 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                             <span>Daxili köçürmə</span>
                         </button>
-                        <button type="button" onclick="BusinessDashboardView.openFinanceAccountModal()" class="px-4 h-9 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-                            <span>Yeni kassa / hesab</span>
+                        <button type="button" onclick="BusinessDashboardView.openFinanceAccountModal()" class="px-3.5 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                            <span>Yeni hesab</span>
                         </button>
                     </div>
                 `;
@@ -36794,16 +36814,20 @@ const BusinessDashboardView = {
                             </div>
                         </div>
 
-                        <div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <button type="button" onclick="BusinessDashboardView.openPosModal()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95" title="Sürətli pərakəndə satış">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                <span>Kassa satışı (POS)</span>
+                            </button>
                             ${isShiftOpen ? `
-                                <button type="button" onclick="BusinessDashboardView.openFinanceShiftModal('close')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition border border-rose-200/60 flex items-center justify-center gap-2 cursor-pointer">
+                                <button type="button" onclick="BusinessDashboardView.openFinanceShiftModal('close')" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition border border-rose-200/60 flex items-center justify-center gap-2 cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    <span>Növbəni bağla (Z-Hesabat)</span>
+                                    <span>Növbəni bağla</span>
                                 </button>
                             ` : `
-                                <button type="button" onclick="BusinessDashboardView.openFinanceShiftModal('open')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                                <button type="button" onclick="BusinessDashboardView.openFinanceShiftModal('open')" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-                                    <span>Yeni növbə aç</span>
+                                    <span>Növbə aç</span>
                                 </button>
                             `}
                         </div>
@@ -43919,6 +43943,872 @@ const BusinessDashboardView = {
                         </div>
                     </div>
 
+                </div>
+            </div>
+        `;
+    },
+
+    // ==========================================
+    // POS (POINT OF SALE / KASSA SATIŞI) MODULE
+    // ==========================================
+    posCart: [],
+    posSelectedClientId: '',
+    posSelectedSellerId: '',
+    posDiscountAmount: 0,
+    posDiscountPercent: 0,
+    posDiscountType: 'percent', // 'percent' | 'fixed'
+    posPaymentMethod: 'cash',   // 'cash' | 'terminal' | 'deposit' | 'bonus'
+    posSelectedAccountId: 'acc_cash',
+    posSearchQuery: '',
+    posCategoryFilter: 'all',
+    posNote: '',
+    lastCompletedSaleReceipt: null,
+
+    openPosModal: function() {
+        const modal = document.getElementById('bizPosModal');
+        if (!modal) return;
+
+        // Reset state
+        this.posCart = [];
+        this.posSelectedClientId = '';
+        this.posSelectedSellerId = '';
+        this.posDiscountAmount = 0;
+        this.posDiscountPercent = 0;
+        this.posDiscountType = 'percent';
+        this.posPaymentMethod = 'cash';
+        this.posSelectedAccountId = 'acc_cash';
+        this.posSearchQuery = '';
+        this.posCategoryFilter = 'all';
+        this.posNote = '';
+
+        // Populate clients dropdown
+        const clientSel = document.getElementById('posClientSelect');
+        if (clientSel) {
+            const clients = this.getClientsData ? this.getClientsData() : [];
+            clientSel.innerHTML = `
+                <option value="">Anonim alıcı (Walk-in / Qonaq)</option>
+                ${clients.map(c => `
+                    <option value="${c.id}">${this.escapeHtml(c.name)} (${c.phone || 'Nömrəsiz'})</option>
+                `).join('')}
+            `;
+            clientSel.value = '';
+        }
+
+        // Populate sellers dropdown (active staff)
+        const sellerSel = document.getElementById('posSellerSelect');
+        if (sellerSel) {
+            const staffList = this.getStaffList ? this.getStaffList() : [];
+            const activeStaff = staffList.filter(s => s.status !== 'inactive');
+            sellerSel.innerHTML = `
+                <option value="">Növbətçi kassir / Administrator</option>
+                ${activeStaff.map(s => `
+                    <option value="${s.id}">${this.escapeHtml(s.name)} (${this.escapeHtml(s.roleTitle || s.role || 'Usta')})</option>
+                `).join('')}
+            `;
+            sellerSel.value = '';
+        }
+
+        // Populate accounts dropdown
+        const accSel = document.getElementById('posAccountSelect');
+        if (accSel) {
+            const fData = this.getFinanceData ? this.getFinanceData() : { accounts: [] };
+            const accounts = fData.accounts || [];
+            accSel.innerHTML = accounts.map(a => `
+                <option value="${a.id}">${this.escapeHtml(a.name)} (${Number(a.balance || 0).toFixed(2)} ₼)</option>
+            `).join('');
+            if (accounts.length > 0) {
+                accSel.value = accounts[0].id;
+                this.posSelectedAccountId = accounts[0].id;
+            }
+        }
+
+        // Clear search input
+        const searchInput = document.getElementById('posSearchInput');
+        if (searchInput) searchInput.value = '';
+
+        // Reset discount input
+        const discountInput = document.getElementById('posDiscountInput');
+        if (discountInput) discountInput.value = '';
+
+        // Render categories & product grid
+        this.renderPosCategoriesHtml();
+        this.renderPosProductsGridHtml();
+        this.renderPosCartUi();
+
+        modal.classList.remove('hidden');
+    },
+
+    closePosModal: function() {
+        const modal = document.getElementById('bizPosModal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    renderPosCategoriesHtml: function() {
+        const container = document.getElementById('posCategoryPills');
+        if (!container) return;
+        const categories = this.getProductCategories ? this.getProductCategories() : [];
+        const allProducts = this.getProducts ? this.getProducts() : [];
+        const activeCat = this.posCategoryFilter || 'all';
+
+        const pills = [
+            { id: 'all', name: 'Bütün məhsullar', count: allProducts.length },
+            ...categories.map(c => ({
+                id: c.id,
+                name: c.name,
+                count: allProducts.filter(p => p.categoryId === c.id).length
+            }))
+        ];
+
+        container.innerHTML = pills.map(p => {
+            const isActive = activeCat === p.id;
+            return `
+                <button type="button" onclick="BusinessDashboardView.setPosCategoryFilter('${p.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${isActive ? 'bg-[#101114] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+                    <span>${this.escapeHtml(p.name)}</span>
+                    <span class="ml-1 text-[10px] opacity-70">(${p.count})</span>
+                </button>
+            `;
+        }).join('');
+    },
+
+    setPosCategoryFilter: function(catId) {
+        this.posCategoryFilter = catId || 'all';
+        this.renderPosCategoriesHtml();
+        this.renderPosProductsGridHtml();
+    },
+
+    onPosSearch: function(val) {
+        this.posSearchQuery = val || '';
+        this.renderPosProductsGridHtml();
+    },
+
+    renderPosProductsGridHtml: function() {
+        const grid = document.getElementById('posProductsGrid');
+        if (!grid) return;
+
+        let products = this.getProducts ? this.getProducts() : [];
+
+        // 1. Category filter
+        if (this.posCategoryFilter && this.posCategoryFilter !== 'all') {
+            products = products.filter(p => p.categoryId === this.posCategoryFilter);
+        }
+
+        // 2. Search query filter
+        if (this.posSearchQuery && this.posSearchQuery.trim()) {
+            const q = this.posSearchQuery.toLowerCase().trim();
+            products = products.filter(p => {
+                const n = (p.name || '').toLowerCase();
+                const sku = (p.sku || '').toLowerCase();
+                const b = (p.barcode || '').toLowerCase();
+                return n.includes(q) || sku.includes(q) || b.includes(q);
+            });
+        }
+
+        if (products.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-2 sm:col-span-3 py-12 text-center text-slate-400 space-y-2">
+                    <svg class="w-10 h-10 mx-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <p class="text-xs font-medium">Heç bir məhsul tapılmadı</p>
+                </div>
+            `;
+            return;
+        }
+
+        const categories = this.getProductCategories ? this.getProductCategories() : [];
+
+        grid.innerHTML = products.map(p => {
+            const stock = Number(p.stock) || 0;
+            const price = Number(p.salePrice || p.price || 0);
+            const inCart = this.posCart.find(it => it.productId === p.id);
+            const cat = categories.find(c => c.id === p.categoryId);
+            const catName = cat ? cat.name : (p.category || '');
+            const isOutOfStock = stock <= 0;
+
+            let stockBadge = '';
+            if (stock > 5) {
+                stockBadge = `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">Qalıq: ${stock} ${this.escapeHtml(p.unit || 'ədəd')}</span>`;
+            } else if (stock > 0) {
+                stockBadge = `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">Qalıq: ${stock} ${this.escapeHtml(p.unit || 'ədəd')}</span>`;
+            } else {
+                stockBadge = `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">Bitib</span>`;
+            }
+
+            return `
+                <div onclick="${isOutOfStock ? '' : `BusinessDashboardView.addToPosCart('${p.id}')`}" class="p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50 border-slate-200' : 'cursor-pointer bg-white border-slate-200/90 hover:border-amber-400 hover:shadow-xs active:scale-[0.98] group'}">
+                    <div>
+                        <div class="flex items-start justify-between gap-1.5 mb-1.5">
+                            <span class="text-[10px] text-slate-400 font-medium truncate">${this.escapeHtml(catName)}</span>
+                            ${inCart ? `<span class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-[#FFDD2D] text-[#101114] shrink-0">${inCart.qty} əd</span>` : ''}
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-900 group-hover:text-amber-700 transition line-clamp-2 leading-snug">${this.escapeHtml(p.name)}</h4>
+                        ${p.sku ? `<span class="text-[10px] text-slate-400 font-mono block mt-0.5">${this.escapeHtml(p.sku)}</span>` : ''}
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-900 font-mono">${price.toFixed(2)} ₼</span>
+                        ${stockBadge}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    addToPosCart: function(prodId) {
+        const products = this.getProducts ? this.getProducts() : [];
+        const prod = products.find(p => p.id === prodId);
+        if (!prod) return;
+
+        const maxStock = Number(prod.stock) || 0;
+        if (maxStock <= 0) {
+            if (typeof App !== 'undefined') App.showToast("Bu məhsul stokda bitib");
+            return;
+        }
+
+        const existing = this.posCart.find(it => it.productId === prodId);
+        if (existing) {
+            if (existing.qty >= maxStock) {
+                if (typeof App !== 'undefined') App.showToast(`Maksimal stok həddi (${maxStock} ${prod.unit || 'ədəd'})`);
+                return;
+            }
+            existing.qty += 1;
+        } else {
+            this.posCart.push({
+                productId: prod.id,
+                name: prod.name,
+                price: Number(prod.salePrice || prod.price || 0),
+                costPrice: Number(prod.costPrice || 0),
+                qty: 1,
+                maxStock: maxStock,
+                unit: prod.unit || 'ədəd',
+                sku: prod.sku || '',
+                barcode: prod.barcode || ''
+            });
+        }
+
+        this.renderPosProductsGridHtml();
+        this.renderPosCartUi();
+    },
+
+    updatePosCartQty: function(prodId, newQty) {
+        const item = this.posCart.find(it => it.productId === prodId);
+        if (!item) return;
+
+        const qty = parseInt(newQty, 10);
+        if (isNaN(qty) || qty <= 0) {
+            this.removeFromPosCart(prodId);
+            return;
+        }
+
+        if (qty > item.maxStock) {
+            item.qty = item.maxStock;
+            if (typeof App !== 'undefined') App.showToast(`Maksimal stok həddi (${item.maxStock} ${item.unit})`);
+        } else {
+            item.qty = qty;
+        }
+
+        this.renderPosProductsGridHtml();
+        this.renderPosCartUi();
+    },
+
+    removeFromPosCart: function(prodId) {
+        this.posCart = this.posCart.filter(it => it.productId !== prodId);
+        this.renderPosProductsGridHtml();
+        this.renderPosCartUi();
+    },
+
+    clearPosCart: function() {
+        this.posCart = [];
+        this.renderPosProductsGridHtml();
+        this.renderPosCartUi();
+    },
+
+    setPosClient: function(clientId) {
+        this.posSelectedClientId = clientId || '';
+    },
+
+    setPosSeller: function(staffId) {
+        this.posSelectedSellerId = staffId || '';
+    },
+
+    setPosDiscountType: function(type) {
+        this.posDiscountType = type || 'percent';
+        this.renderPosCartUi();
+    },
+
+    setPosDiscountValue: function(val) {
+        const num = Math.max(0, parseFloat(val) || 0);
+        if (this.posDiscountType === 'percent') {
+            this.posDiscountPercent = Math.min(100, num);
+        } else {
+            this.posDiscountAmount = num;
+        }
+        this.renderPosCartUi();
+    },
+
+    setPosPaymentMethod: function(method) {
+        this.posPaymentMethod = method || 'cash';
+        // Auto-select corresponding account if available
+        const fData = this.getFinanceData ? this.getFinanceData() : { accounts: [] };
+        const accounts = fData.accounts || [];
+        if (method === 'cash') {
+            const cashAcc = accounts.find(a => a.type === 'cash' || a.id === 'acc_cash');
+            if (cashAcc) this.posSelectedAccountId = cashAcc.id;
+        } else if (method === 'terminal') {
+            const posAcc = accounts.find(a => a.type === 'pos' || a.id === 'acc_pos');
+            if (posAcc) this.posSelectedAccountId = posAcc.id;
+        }
+        const accSel = document.getElementById('posAccountSelect');
+        if (accSel && this.posSelectedAccountId) {
+            accSel.value = this.posSelectedAccountId;
+        }
+        this.renderPosCartUi();
+    },
+
+    setPosAccount: function(accId) {
+        this.posSelectedAccountId = accId;
+    },
+
+    renderPosCartUi: function() {
+        const listEl = document.getElementById('posCartItemsList');
+        const subtotalEl = document.getElementById('posSubtotalDisplay');
+        const discountRowEl = document.getElementById('posDiscountRowDisplay');
+        const finalTotalEl = document.getElementById('posFinalTotalDisplay');
+        const submitBtn = document.getElementById('posSubmitBtn');
+        const submitBtnText = document.getElementById('posSubmitBtnText');
+        const itemsCountBadge = document.getElementById('posCartCountBadge');
+
+        if (!listEl) return;
+
+        let subtotal = 0;
+        this.posCart.forEach(it => {
+            subtotal += (it.qty * it.price);
+        });
+
+        let discountVal = 0;
+        if (this.posDiscountType === 'percent') {
+            discountVal = subtotal * (this.posDiscountPercent / 100);
+        } else {
+            discountVal = Math.min(subtotal, this.posDiscountAmount);
+        }
+
+        const finalTotal = Math.max(0, subtotal - discountVal);
+
+        if (itemsCountBadge) {
+            itemsCountBadge.textContent = this.posCart.reduce((acc, it) => acc + it.qty, 0);
+        }
+
+        if (this.posCart.length === 0) {
+            listEl.innerHTML = `
+                <div class="py-10 text-center text-slate-400 space-y-2">
+                    <svg class="w-8 h-8 mx-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <p class="text-xs font-semibold text-slate-600">Səbət boşdur</p>
+                    <p class="text-[11px] text-slate-400">Sol tərəfdən məhsul seçin və ya axtarın</p>
+                </div>
+            `;
+            if (submitBtn) submitBtn.disabled = true;
+        } else {
+            listEl.innerHTML = this.posCart.map(it => {
+                const lineTotal = it.qty * it.price;
+                return `
+                    <div class="py-2.5 flex items-center justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                            <h5 class="text-xs font-bold text-slate-900 truncate">${this.escapeHtml(it.name)}</h5>
+                            <span class="text-[11px] text-slate-400 font-mono">${it.price.toFixed(2)} ₼ / ${this.escapeHtml(it.unit)}</span>
+                        </div>
+
+                        <!-- Stepper -->
+                        <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 rounded-lg p-0.5">
+                            <button type="button" onclick="BusinessDashboardView.updatePosCartQty('${it.productId}', ${it.qty - 1})" class="w-6 h-6 rounded-md bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition cursor-pointer">
+                                -
+                            </button>
+                            <span class="w-6 text-center text-xs font-bold text-slate-900 font-mono">${it.qty}</span>
+                            <button type="button" onclick="BusinessDashboardView.updatePosCartQty('${it.productId}', ${it.qty + 1})" class="w-6 h-6 rounded-md bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition cursor-pointer">
+                                +
+                            </button>
+                        </div>
+
+                        <div class="text-right shrink-0 min-w-[60px]">
+                            <span class="text-xs font-bold text-slate-900 font-mono block">${lineTotal.toFixed(2)} ₼</span>
+                        </div>
+
+                        <button type="button" onclick="BusinessDashboardView.removeFromPosCart('${it.productId}')" class="text-slate-300 hover:text-rose-500 transition p-1 cursor-pointer shrink-0" title="Sil">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            if (submitBtn) submitBtn.disabled = false;
+        }
+
+        if (subtotalEl) subtotalEl.textContent = `${subtotal.toFixed(2)} ₼`;
+        if (discountRowEl) {
+            if (discountVal > 0) {
+                discountRowEl.classList.remove('hidden');
+                const discText = discountRowEl.querySelector('#posDiscountAmountText');
+                if (discText) discText.textContent = `- ${discountVal.toFixed(2)} ₼`;
+            } else {
+                discountRowEl.classList.add('hidden');
+            }
+        }
+        if (finalTotalEl) finalTotalEl.textContent = `${finalTotal.toFixed(2)} ₼`;
+        if (submitBtnText) submitBtnText.textContent = `Ödənişi tamamla (${finalTotal.toFixed(2)} ₼)`;
+
+        // Highlight active payment method pill
+        ['cash', 'terminal', 'deposit', 'bonus'].forEach(m => {
+            const btn = document.getElementById(`posPayMethod_${m}`);
+            if (btn) {
+                if (this.posPaymentMethod === m) {
+                    btn.className = "p-2 rounded-xl border border-[#101114] bg-[#101114] text-white text-center text-xs font-bold transition shadow-2xs cursor-pointer";
+                } else {
+                    btn.className = "p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-center text-xs font-semibold transition cursor-pointer";
+                }
+            }
+        });
+    },
+
+    completePosSale: function() {
+        if (this.posCart.length === 0) {
+            if (typeof App !== 'undefined') App.showToast("Səbət boşdur");
+            return;
+        }
+
+        let products = this.getProducts ? this.getProducts() : [];
+        let financeData = this.getFinanceData ? this.getFinanceData() : { accounts: [], transactions: [] };
+        let operations = this.getInventoryOperations ? this.getInventoryOperations() : [];
+        let clients = this.getClientsData ? this.getClientsData() : [];
+        let staffList = this.getStaffList ? this.getStaffList() : [];
+
+        // 1. Stock verification
+        for (let it of this.posCart) {
+            const p = products.find(x => x.id === it.productId);
+            if (!p || (Number(p.stock) || 0) < it.qty) {
+                if (typeof App !== 'undefined') App.showToast(`Kifayət qədər qalıq yoxdur: ${it.name}`);
+                return;
+            }
+        }
+
+        // Calculate totals
+        let subtotal = 0;
+        this.posCart.forEach(it => { subtotal += (it.qty * it.price); });
+        let discountVal = 0;
+        if (this.posDiscountType === 'percent') {
+            discountVal = subtotal * (this.posDiscountPercent / 100);
+        } else {
+            discountVal = Math.min(subtotal, this.posDiscountAmount);
+        }
+        const finalTotal = Math.max(0, subtotal - discountVal);
+
+        const now = new Date();
+        const dateIso = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+        const receiptDocNum = 'SAT-' + String(Date.now()).slice(-5);
+
+        // Find client & seller
+        const clientObj = clients.find(c => c.id === this.posSelectedClientId);
+        const clientName = clientObj ? clientObj.name : 'Anonim alıcı';
+        const clientPhone = clientObj ? (clientObj.phone || '') : '';
+
+        const sellerObj = staffList.find(s => s.id === this.posSelectedSellerId);
+        const sellerName = sellerObj ? sellerObj.name : 'Növbətçi kassir';
+
+        const paymentMethodNames = {
+            cash: 'Nağd',
+            terminal: 'POS-Terminal (Kart)',
+            deposit: 'Depozit',
+            bonus: 'Keşbek / Bonus'
+        };
+        const payMethodLabel = paymentMethodNames[this.posPaymentMethod] || 'Nağd';
+
+        // 2. Reduce stock & record inventory operation
+        for (let it of this.posCart) {
+            const p = products.find(x => x.id === it.productId);
+            if (p) {
+                p.stock = Math.max(0, (Number(p.stock) || 0) - it.qty);
+                if (p.stock === 0) {
+                    p.status = 'out_of_stock';
+                } else if (p.stock <= (Number(p.minStock) || 5)) {
+                    p.status = 'low_stock';
+                } else {
+                    p.status = 'in_stock';
+                }
+            }
+        }
+        this.saveProducts(products);
+
+        // Record inventory write-off operation
+        const newOp = {
+            id: 'op_' + Date.now(),
+            docNumber: receiptDocNum,
+            type: 'writeoff',
+            typeName: 'Kassa satışı',
+            date: dateIso,
+            warehouseId: 'wh_main',
+            warehouseName: 'Əsas anbar (Salon)',
+            supplier: clientName,
+            notes: `Pərakəndə satış çeki #${receiptDocNum}. Satıcı: ${sellerName}. Ödəniş: ${payMethodLabel}`,
+            items: this.posCart.map(it => ({
+                id: 'item_' + Math.random().toString(36).substr(2, 6),
+                productId: it.productId,
+                name: it.name,
+                sku: it.sku,
+                qty: it.qty,
+                price: it.price,
+                total: it.qty * it.price
+            })),
+            createdAt: now.toISOString()
+        };
+        operations.unshift(newOp);
+        this.saveInventoryOperations(operations);
+
+        // 3. Record Finance transaction & update account balance
+        const targetAccId = this.posSelectedAccountId || (this.posPaymentMethod === 'terminal' ? 'acc_pos' : 'acc_cash');
+        const acc = (financeData.accounts || []).find(a => a.id === targetAccId);
+        if (acc) {
+            acc.balance = (Number(acc.balance) || 0) + finalTotal;
+        }
+
+        // If shift is open, update shift turnover
+        if (financeData.shift && financeData.shift.status === 'open') {
+            if (this.posPaymentMethod === 'cash') {
+                financeData.shift.cashTurnover = (Number(financeData.shift.cashTurnover) || 0) + finalTotal;
+            } else {
+                financeData.shift.cardTurnover = (Number(financeData.shift.cardTurnover) || 0) + finalTotal;
+            }
+            financeData.shift.totalTurnover = (Number(financeData.shift.totalTurnover) || 0) + finalTotal;
+        }
+
+        const newTx = {
+            id: 'tx_' + Date.now(),
+            date: dateIso,
+            time: timeStr,
+            type: 'income',
+            accountId: targetAccId,
+            categoryId: 'cat_inc_product',
+            amount: finalTotal,
+            title: `Məhsul satışı (${this.posCart.length} adda)`,
+            counterparty: clientName,
+            note: `Çek #${receiptDocNum} • ${payMethodLabel} • Satıcı: ${sellerName}`
+        };
+        if (!financeData.transactions) financeData.transactions = [];
+        financeData.transactions.unshift(newTx);
+        this.saveFinanceData(financeData);
+
+        // 4. Update Client History if registered client
+        if (clientObj) {
+            if (!clientObj.history) clientObj.history = [];
+            clientObj.history.unshift({
+                date: dateIso,
+                serviceName: `Məhsul satışı: ${this.posCart.map(i => i.name).join(', ')}`,
+                staffName: sellerName,
+                cost: finalTotal,
+                status: 'Tamamlandı'
+            });
+            clientObj.totalVisits = (Number(clientObj.totalVisits) || 0) + 1;
+            clientObj.totalSpent = (Number(clientObj.totalSpent) || 0) + finalTotal;
+            this.saveClientsData(clients);
+        }
+
+        // 5. Build receipt object
+        const activeCtx = this.getActiveContext ? this.getActiveContext() : {};
+        const receiptData = {
+            docNumber: receiptDocNum,
+            date: dateIso,
+            time: timeStr,
+            businessName: activeCtx.businessName || 'Zeyvo Salon Studio',
+            branchName: activeCtx.branchName || 'Mərkəz Filialı',
+            clientName: clientName,
+            clientPhone: clientPhone,
+            sellerName: sellerName,
+            paymentMethod: payMethodLabel,
+            accountName: acc ? acc.name : 'Əsas kassa',
+            items: JSON.parse(JSON.stringify(this.posCart)),
+            subtotal: subtotal,
+            discount: discountVal,
+            finalTotal: finalTotal
+        };
+
+        this.lastCompletedSaleReceipt = receiptData;
+
+        // Close POS Modal
+        this.closePosModal();
+
+        // Refresh views
+        this.refreshFinanceCanvas();
+        this.refreshProductsModule();
+
+        if (typeof App !== 'undefined') {
+            App.showToast(`Satış uğurla tamamlandı: ${finalTotal.toFixed(2)} ₼`);
+        }
+
+        // Open Receipt Dialog
+        this.openPosReceiptModal(receiptData);
+    },
+
+    openPosReceiptModal: function(receipt) {
+        const modal = document.getElementById('bizPosReceiptModal');
+        const content = document.getElementById('bizPosReceiptContent');
+        if (!modal || !content || !receipt) return;
+
+        content.innerHTML = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 font-mono text-xs text-slate-800 space-y-3 shadow-xs">
+                <!-- Receipt Top -->
+                <div class="text-center pb-3 border-b border-dashed border-slate-300 space-y-0.5">
+                    <h4 class="font-bold text-sm text-slate-900">${this.escapeHtml(receipt.businessName)}</h4>
+                    <p class="text-[11px] text-slate-500">${this.escapeHtml(receipt.branchName)}</p>
+                    <p class="text-[10px] text-slate-400 font-semibold mt-1">Kassa çeki • ${this.escapeHtml(receipt.docNumber)}</p>
+                </div>
+
+                <!-- Meta -->
+                <div class="text-[11px] space-y-1 text-slate-600">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Tarix & Vaxt:</span>
+                        <span class="font-bold text-slate-800">${receipt.date} ${receipt.time}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Satıcı / Kassir:</span>
+                        <span class="font-bold text-slate-800">${this.escapeHtml(receipt.sellerName)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Alıcı:</span>
+                        <span class="font-bold text-slate-800">${this.escapeHtml(receipt.clientName)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Ödəniş üsulu:</span>
+                        <span class="font-bold text-slate-800">${this.escapeHtml(receipt.paymentMethod)}</span>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="pt-2 border-t border-dashed border-slate-300">
+                    <div class="text-[10px] text-slate-400 flex justify-between pb-1 font-semibold">
+                        <span>Ad / Miqdar</span>
+                        <span>Məbləğ</span>
+                    </div>
+                    <div class="space-y-1.5 pt-1">
+                        ${receipt.items.map(it => `
+                            <div class="flex justify-between items-start text-[11px]">
+                                <div class="pr-2">
+                                    <div class="font-bold text-slate-900 leading-snug">${this.escapeHtml(it.name)}</div>
+                                    <div class="text-[10px] text-slate-400">${it.qty} x ${it.price.toFixed(2)} ₼</div>
+                                </div>
+                                <div class="font-bold text-slate-900 shrink-0">${(it.qty * it.price).toFixed(2)} ₼</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Totals -->
+                <div class="pt-2.5 border-t border-dashed border-slate-300 space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-500">Məhsul cəmi:</span>
+                        <span class="font-bold">${receipt.subtotal.toFixed(2)} ₼</span>
+                    </div>
+                    ${receipt.discount > 0 ? `
+                        <div class="flex justify-between text-[11px] text-amber-700">
+                            <span>Endirim:</span>
+                            <span class="font-bold">- ${receipt.discount.toFixed(2)} ₼</span>
+                        </div>
+                    ` : ''}
+                    <div class="flex justify-between text-sm font-black pt-1.5 border-t border-slate-200 text-slate-900">
+                        <span>YEKUN ÖDƏNİŞ:</span>
+                        <span>${receipt.finalTotal.toFixed(2)} ₼</span>
+                    </div>
+                </div>
+
+                <!-- Footer note -->
+                <div class="pt-3 border-t border-dashed border-slate-300 text-center text-[10px] text-slate-400">
+                    Bizi seçdiyiniz üçün təşəkkür edirik!
+                </div>
+            </div>
+        `;
+
+        modal.classList.remove('hidden');
+    },
+
+    closePosReceiptModal: function() {
+        const modal = document.getElementById('bizPosReceiptModal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    printPosReceipt: function() {
+        window.print();
+    },
+
+    // Render POS Modals (Strictly compliant with GEMINI.md Rule 5: NO icons in modal headers!)
+    renderPosModals: function() {
+        return `
+            <!-- ==========================================
+                 1. POS TERMINAL / KASSA SATIŞI MODAL
+                 (GEMINI.md Rule 5 compliant: Clean header, no icons)
+            =========================================== -->
+            <div id="bizPosModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+                <div class="bg-white rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    <!-- Clean Header (Strictly compliant with GEMINI.md - Rule 5) -->
+                    <div class="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900">Kassa satışı (POS Terminal)</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Məhsulların sürətli satışı, anbar silinməsi və kassa mədaxili</p>
+                        </div>
+                        <button type="button" onclick="BusinessDashboardView.closePosModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer" title="Bağla">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Body 2-Column Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                        <!-- LEFT: Catalog & Products (7 cols) -->
+                        <div class="lg:col-span-7 flex flex-col overflow-hidden p-4 sm:p-5 space-y-3.5">
+                            <!-- Search & Filter Bar -->
+                            <div class="space-y-2.5 shrink-0">
+                                <div class="relative">
+                                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    <input type="text" id="posSearchInput" oninput="BusinessDashboardView.onPosSearch(this.value)" placeholder="Məhsul adı, barkod və ya artikul..." class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-xs font-medium focus:border-[#FFDD2D] focus:ring-1 focus:ring-[#FFDD2D] outline-none bg-slate-50/50 focus:bg-white transition" />
+                                </div>
+                                <div id="posCategoryPills" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Products Grid -->
+                            <div id="posProductsGrid" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2.5 pr-1 min-h-[300px]">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Cart & Checkout (5 cols) -->
+                        <div class="lg:col-span-5 flex flex-col overflow-hidden p-4 sm:p-5 bg-slate-50/40 space-y-3.5">
+                            <!-- Customer & Seller Selectors -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 shrink-0">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Alıcı (Müştəri)</label>
+                                    <select id="posClientSelect" onchange="BusinessDashboardView.setPosClient(this.value)" class="w-full h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 outline-none">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Satıcı (Usta / Kassir)</label>
+                                    <select id="posSellerSelect" onchange="BusinessDashboardView.setPosSeller(this.value)" class="w-full h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 outline-none">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Cart Items Box -->
+                            <div class="flex-1 flex flex-col overflow-hidden bg-white rounded-2xl border border-slate-200/80 p-3 shadow-2xs space-y-2 min-h-[160px]">
+                                <div class="flex items-center justify-between shrink-0 pb-1.5 border-b border-slate-100">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-xs font-bold text-slate-800">Səbət</span>
+                                        <span id="posCartCountBadge" class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#FFDD2D] text-[#101114]">0</span>
+                                    </div>
+                                    <button type="button" onclick="BusinessDashboardView.clearPosCart()" class="text-[11px] text-slate-400 hover:text-rose-600 transition font-medium cursor-pointer">
+                                        Təmizlə
+                                    </button>
+                                </div>
+                                <div id="posCartItemsList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pr-1">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Discounts & Totals -->
+                            <div class="bg-white rounded-2xl border border-slate-200/80 p-3 space-y-2 shrink-0">
+                                <div class="flex items-center justify-between text-xs text-slate-500">
+                                    <span>Məhsul cəmi:</span>
+                                    <span id="posSubtotalDisplay" class="font-bold text-slate-800 font-mono">0.00 ₼</span>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                                    <span class="text-xs font-semibold text-slate-600 shrink-0">Endirim:</span>
+                                    <div class="flex items-center gap-1">
+                                        <input type="number" min="0" step="any" id="posDiscountInput" oninput="BusinessDashboardView.setPosDiscountValue(this.value)" placeholder="0" class="w-20 h-7 px-2 rounded-lg border border-slate-200 text-xs font-mono font-bold text-right outline-none focus:border-amber-400" />
+                                        <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-[10px] font-bold">
+                                            <button type="button" onclick="BusinessDashboardView.setPosDiscountType('percent')" class="px-2 py-0.5 rounded ${this.posDiscountType === 'percent' ? 'bg-[#FFDD2D] text-[#101114]' : 'text-slate-600'} cursor-pointer">%</button>
+                                            <button type="button" onclick="BusinessDashboardView.setPosDiscountType('fixed')" class="px-2 py-0.5 rounded ${this.posDiscountType === 'fixed' ? 'bg-[#FFDD2D] text-[#101114]' : 'text-slate-600'} cursor-pointer">₼</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="posDiscountRowDisplay" class="hidden flex items-center justify-between text-xs text-amber-700">
+                                    <span>Tətbiq edilən endirim:</span>
+                                    <span id="posDiscountAmountText" class="font-bold font-mono">- 0.00 ₼</span>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                                    <span class="text-sm font-bold text-slate-900">Yekun məbləğ</span>
+                                    <span id="posFinalTotalDisplay" class="text-xl font-black text-slate-900 font-mono">0.00 ₼</span>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method Selector -->
+                            <div class="space-y-1.5 shrink-0">
+                                <label class="block text-[11px] font-bold text-slate-600">Ödəniş üsulu</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                    <button type="button" id="posPayMethod_cash" onclick="BusinessDashboardView.setPosPaymentMethod('cash')" class="p-2 rounded-xl border border-[#101114] bg-[#101114] text-white text-center text-xs font-bold transition shadow-2xs cursor-pointer">
+                                        Nağd
+                                    </button>
+                                    <button type="button" id="posPayMethod_terminal" onclick="BusinessDashboardView.setPosPaymentMethod('terminal')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
+                                        POS-Terminal
+                                    </button>
+                                    <button type="button" id="posPayMethod_deposit" onclick="BusinessDashboardView.setPosPaymentMethod('deposit')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
+                                        Depozit
+                                    </button>
+                                    <button type="button" id="posPayMethod_bonus" onclick="BusinessDashboardView.setPosPaymentMethod('bonus')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-center text-xs font-semibold transition cursor-pointer">
+                                        Bonus
+                                    </button>
+                                </div>
+
+                                <div class="pt-1">
+                                    <label class="block text-[10px] text-slate-400 font-medium mb-0.5">Kassa / Bank hesabı</label>
+                                    <select id="posAccountSelect" onchange="BusinessDashboardView.setPosAccount(this.value)" class="w-full h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 outline-none">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Submit / Pay Button -->
+                            <div class="shrink-0 pt-1">
+                                <button type="button" id="posSubmitBtn" onclick="BusinessDashboardView.completePosSale()" class="w-full h-11 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold text-xs sm:text-sm transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    <span id="posSubmitBtnText">Ödənişi tamamla (0.00 ₼)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 2. POS RECEIPT MODAL (ÇEK)
+                 (GEMINI.md Rule 5 compliant: Clean header, no icons)
+            =========================================== -->
+            <div id="bizPosReceiptModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+                <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Satış qəbzi</h3>
+                            <p class="text-xs text-slate-400">Kassa əməliyyatı təsdiqləndi</p>
+                        </div>
+                        <button type="button" onclick="BusinessDashboardView.closePosReceiptModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer" title="Bağla">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <div id="bizPosReceiptContent">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                        <button type="button" onclick="BusinessDashboardView.closePosReceiptModal()" class="px-4 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer">
+                            Bağla
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="BusinessDashboardView.closePosReceiptModal(); BusinessDashboardView.openPosModal();" class="px-4 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer">
+                                Yeni satış
+                            </button>
+                            <button type="button" onclick="BusinessDashboardView.printPosReceipt()" class="px-4 h-10 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                <span>Çap et</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
