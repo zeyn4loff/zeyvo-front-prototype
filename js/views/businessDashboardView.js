@@ -7085,20 +7085,20 @@ const BusinessDashboardView = {
         return {
             key: 'blue',
             isBlocked: false,
-            headerBg: 'bg-sky-600 text-white font-semibold',
-            headerText: 'text-white',
-            border: 'border-sky-300/80',
-            bg: 'bg-sky-50/90',
+            headerBg: 'bg-sky-50 text-sky-800 font-semibold',
+            headerText: 'text-sky-800',
+            border: 'border-slate-200/90',
+            bg: 'bg-white',
             titleColor: 'text-slate-900',
-            serviceColor: 'text-sky-950/80',
-            subColor: 'text-sky-700/80',
-            priceColor: 'text-sky-950 font-bold',
-            badgeBg: 'bg-sky-100 text-sky-900 font-semibold',
-            stripeBar: 'bg-sky-600',
-            statusBadgeText: 'text-sky-900',
-            backgroundColor: '#f0f9ff',
-            borderColor: '#7dd3fc',
-            textColor: '#0c4a6e',
+            serviceColor: 'text-slate-500',
+            subColor: 'text-slate-400',
+            priceColor: 'text-slate-900 font-bold',
+            badgeBg: 'bg-sky-50 text-sky-700 border border-sky-200/80',
+            stripeBar: 'bg-sky-500',
+            statusBadgeText: 'text-sky-700',
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            textColor: '#0f172a',
             accentColor: '#0284c7'
         };
     },
@@ -7174,18 +7174,18 @@ const BusinessDashboardView = {
     getBookingStatusIconSvg: function(status) {
         const st = (status || '').toLowerCase();
         if (st.includes('tamam') || st.includes('completed')) {
-            return `<svg class="w-3 h-3 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
+            return `<svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
         }
         if (st.includes('gözlənilir') || st.includes('pending') || st.includes('plan')) {
-            return `<svg class="w-3 h-3 opacity-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+            return `<svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
         }
         if (st.includes('ləğv') || st.includes('cancel')) {
-            return `<svg class="w-3 h-3 text-rose-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
+            return `<svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
         }
         if (st.includes('gəldi') || st.includes('salondadır')) {
-            return `<svg class="w-3 h-3 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>`;
+            return `<svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>`;
         }
-        return `<svg class="w-3 h-3 opacity-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+        return `<svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
     },
 
     // ----------------------------------------------------
@@ -7473,34 +7473,43 @@ const BusinessDashboardView = {
 
                                                 return `
                                                     <div style="${stylePosition}"
-                                                         class="absolute rounded-xl border flex flex-col shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden z-10 ${theme.border} ${theme.bg}"
+                                                         class="absolute rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden z-10 group flex"
                                                          onclick="event.stopPropagation(); BusinessDashboardView.openBookingModal('${b.id}')">
                                                         
-                                                        <!-- EasyWeek Saturated Header Bar -->
-                                                        <div class="h-5 px-2 flex items-center justify-between text-[10px] font-bold shrink-0 select-none ${theme.headerBg}">
-                                                            <span class="truncate tracking-tight">${timeRange}</span>
-                                                            <div class="flex items-center gap-1 shrink-0 ml-1">
-                                                                ${totalCols > 1 ? `<span class="text-[9px] bg-rose-600 text-white px-1 py-0.2 rounded font-bold" title="Vaxt toqquşması!">Toqquşma</span>` : ''}
-                                                                ${b.note ? `<svg class="w-2.5 h-2.5 opacity-85" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
-                                                                ${statusIcon}
-                                                            </div>
-                                                        </div>
+                                                        <!-- Left Status Stripe Bar -->
+                                                        <div class="w-1.5 shrink-0 ${theme.stripeBar} self-stretch"></div>
 
-                                                        <!-- EasyWeek Matching Tinted Body -->
-                                                        <div class="p-1.5 sm:p-2 flex-1 flex flex-col justify-between min-w-0" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
-                                                            <div class="min-w-0">
-                                                                <div class="flex items-baseline justify-between gap-1">
-                                                                    <span class="text-[11px] sm:text-xs font-bold truncate leading-tight ${theme.titleColor}">${b.clientName || 'Müştəri'}</span>
-                                                                    ${b.price ? `<span class="text-[10px] sm:text-[11px] font-bold font-mono shrink-0 ${theme.priceColor}">${b.price} ₼</span>` : ''}
+                                                        <!-- Clean Zeyvo Card Body -->
+                                                        <div class="p-1.5 sm:p-2 flex-1 flex flex-col justify-between min-w-0 overflow-hidden" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
+                                                            <!-- Header row: Time & Status Pill Badge -->
+                                                            <div class="flex items-center justify-between gap-1 min-w-0">
+                                                                <span class="text-[10px] sm:text-[11px] font-bold font-mono text-slate-800 tracking-tight shrink-0">${timeRange}</span>
+                                                                <div class="flex items-center gap-1 shrink-0 ml-auto min-w-0">
+                                                                    ${totalCols > 1 ? `<span class="text-[9px] bg-rose-50 text-rose-700 border border-rose-200/80 px-1 py-0.2 rounded font-bold" title="Vaxt toqquşması!">Toqquşma</span>` : ''}
+                                                                    ${b.note ? `<svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="${b.note}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
+                                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9px] font-semibold shrink-0 ${theme.badgeBg}">
+                                                                        ${statusIcon}
+                                                                        <span class="truncate max-w-[65px]">${b.status || 'Təsdiqləndi'}</span>
+                                                                    </span>
                                                                 </div>
-                                                                <div class="text-[10px] font-medium truncate mt-0.5 ${theme.serviceColor}">
+                                                            </div>
+
+                                                            <!-- Middle row: Client Name & Price -->
+                                                            <div class="min-w-0 my-0.5">
+                                                                <div class="flex items-baseline justify-between gap-1">
+                                                                    <span class="text-[11px] sm:text-xs font-bold truncate leading-tight text-slate-900 group-hover:text-amber-600 transition-colors">${b.clientName || 'Müştəri'}</span>
+                                                                    ${b.price ? `<span class="text-[10px] sm:text-[11px] font-bold font-mono text-slate-900 shrink-0">${b.price} ₼</span>` : ''}
+                                                                </div>
+                                                                <div class="text-[10px] text-slate-500 font-medium truncate mt-0.5">
                                                                     ${b.service || 'Xidmət'}
                                                                 </div>
                                                             </div>
+
+                                                            <!-- Bottom row: Phone / Master / Extra info -->
                                                             ${blockHeight >= 62 ? `
-                                                                <div class="flex items-center justify-between text-[9px] font-mono mt-1 ${theme.subColor}">
+                                                                <div class="flex items-center justify-between text-[9px] text-slate-400 font-mono pt-1 border-t border-slate-100">
                                                                     <span class="truncate">${b.masterName ? b.masterName.split(' ')[0] : (b.phone || '')}</span>
-                                                                    <span class="px-1.5 py-0.2 rounded font-semibold text-[9px] shrink-0 ${theme.badgeBg}">${b.status || 'Təsdiqləndi'}</span>
+                                                                    ${b.source === 'online' ? `<span class="text-[9px] text-amber-700 font-sans font-semibold bg-amber-50 px-1 rounded border border-amber-200/60">Onlayn</span>` : ''}
                                                                 </div>
                                                             ` : ''}
                                                         </div>
@@ -7559,25 +7568,35 @@ const BusinessDashboardView = {
                                         const statusIcon = this.getBookingStatusIconSvg(b.status);
                                         return `
                                             <div onclick="BusinessDashboardView.openBookingModal('${b.id}')"
-                                                 class="rounded-xl border shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden flex flex-col ${theme.border} ${theme.bg}">
-                                                <!-- Top colored time bar -->
-                                                <div class="h-5 px-2 flex items-center justify-between text-[10px] font-bold shrink-0 select-none ${theme.headerBg}">
-                                                    <span class="truncate tracking-tight">${timeRange}</span>
-                                                    <div class="flex items-center gap-1 shrink-0 ml-1">
-                                                        ${b.note ? `<svg class="w-2.5 h-2.5 opacity-85" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
-                                                        ${statusIcon}
+                                                 class="relative rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden flex group">
+                                                
+                                                <!-- Left Status Stripe Bar -->
+                                                <div class="w-1.5 shrink-0 ${theme.stripeBar} self-stretch"></div>
+
+                                                <!-- Clean Zeyvo Card Body -->
+                                                <div class="p-2 space-y-1 flex-1 min-w-0" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
+                                                    <!-- Top row: Time & Status Pill -->
+                                                    <div class="flex items-center justify-between gap-1 text-[11px] min-w-0">
+                                                        <span class="font-bold font-mono text-slate-800 tracking-tight shrink-0">${timeRange}</span>
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9px] font-semibold shrink-0 ${theme.badgeBg}">
+                                                            ${statusIcon}
+                                                            <span class="truncate max-w-[60px]">${b.status || 'Təsdiqləndi'}</span>
+                                                        </span>
                                                     </div>
-                                                </div>
-                                                <!-- Pastel card body -->
-                                                <div class="p-2 space-y-1" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
-                                                    <div class="flex items-baseline justify-between gap-1 text-[11px] font-bold">
-                                                        <span class="truncate ${theme.titleColor}">${b.clientName}</span>
-                                                        <span class="font-mono font-bold shrink-0 ${theme.priceColor}">${b.price ? b.price + ' ₼' : ''}</span>
+
+                                                    <!-- Middle row: Client & Price -->
+                                                    <div class="flex items-baseline justify-between gap-1 text-xs">
+                                                        <span class="font-bold text-slate-900 truncate group-hover:text-amber-600 transition-colors">${b.clientName || 'Müştəri'}</span>
+                                                        ${b.price ? `<span class="font-mono font-bold text-slate-900 shrink-0 text-[11px]">${b.price} ₼</span>` : ''}
                                                     </div>
-                                                    <div class="text-[10px] truncate ${theme.serviceColor}">${b.service}</div>
-                                                    <div class="flex items-center justify-between text-[9px] font-mono pt-0.5 ${theme.subColor}">
+
+                                                    <!-- Service -->
+                                                    <div class="text-[10px] text-slate-500 font-medium truncate">${b.service || 'Xidmət'}</div>
+
+                                                    <!-- Bottom row: Phone / Master -->
+                                                    <div class="flex items-center justify-between text-[9px] text-slate-400 font-mono pt-1 border-t border-slate-100">
                                                         <span class="truncate">${b.phone || (b.masterName ? b.masterName.split(' ')[0] : '')}</span>
-                                                        <span class="px-1.5 py-0.2 rounded font-semibold text-[9px] ${theme.badgeBg}">${b.status || 'Təsdiqləndi'}</span>
+                                                        ${b.note ? `<svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="${b.note}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
                                                     </div>
                                                 </div>
                                             </div>
