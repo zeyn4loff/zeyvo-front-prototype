@@ -7023,19 +7023,19 @@ const BusinessDashboardView = {
 
                 <!-- Pending Online Bookings Alert Banner (shown when in daily or weekly view) -->
                 ${(pendingOnlineCount > 0 && this.calendarViewMode !== 'pending_online') ? `
-                    <div class="p-3 sm:p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/80 flex items-center justify-between gap-3 text-xs shadow-2xs">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/95 border border-amber-200/90 flex items-center justify-between gap-4 text-xs shadow-2xs">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div class="truncate">
-                                <div class="font-bold text-slate-900">${pendingOnlineCount} onlayn qəbul müraciəti təsdiq gözləyir</div>
-                                <p class="text-slate-500 text-[11px] truncate">Müştərilər tərəfindən platformadan göndərilmiş yeni rezervasiyalar</p>
+                                <div class="font-bold text-slate-900 sm:text-sm">${pendingOnlineCount} onlayn qəbul müraciəti təsdiq gözləyir</div>
+                                <p class="text-slate-500 text-[11px] sm:text-xs truncate">Müştərilər tərəfindən platformadan göndərilmiş yeni rezervasiyalar</p>
                             </div>
                         </div>
-                        <button type="button" onclick="BusinessDashboardView.setCalendarViewMode('pending_online')" class="px-3.5 h-8.5 rounded-xl bg-white hover:bg-amber-100 text-slate-900 font-bold border border-amber-300 shadow-2xs transition shrink-0 cursor-pointer text-xs flex items-center gap-1.5 active:scale-95">
+                        <button type="button" onclick="BusinessDashboardView.setCalendarViewMode('pending_online')" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-amber-100 text-slate-900 font-bold border border-amber-300 shadow-2xs transition shrink-0 cursor-pointer text-xs sm:text-sm flex items-center gap-2 active:scale-95">
                             <span>Müraciətlərə bax (${pendingOnlineCount})</span>
-                            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
                 ` : ''}
@@ -7376,16 +7376,18 @@ const BusinessDashboardView = {
         const showRedLine = isViewingToday && currentHour >= startHour && currentHour <= endHour;
         const redLineTop = showRedLine ? ((currentHour - startHour) * slotHeight + (currentMinute / 60) * slotHeight) : -100;
 
+        const timelineMinWidth = Math.max(860, 80 + masters.length * 220);
+
         return `
             <div class="overflow-auto max-h-[calc(100vh-210px)] min-h-[520px] relative scroll-smooth rounded-2xl">
-                <div class="min-w-[760px] select-none relative">
+                <div class="select-none relative" style="min-width: ${timelineMinWidth}px;">
                     <!-- TIMELINE HEADER ROW: Masters list (Sticky Top at all times) -->
                     <div class="sticky top-0 z-30 bg-slate-50/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs flex text-xs font-semibold text-slate-500">
                         <div class="w-16 sm:w-20 shrink-0 py-3 px-3 text-center font-bold text-[11px] text-slate-500 border-r border-slate-200/70 bg-slate-50/95 sticky left-0 top-0 z-40">
                             Saat
                         </div>
 
-                        <div class="flex-1 grid" style="grid-template-columns: repeat(${masters.length}, minmax(0, 1fr));">
+                        <div class="flex-1 grid" style="grid-template-columns: repeat(${masters.length}, minmax(220px, 1fr));">
                             ${masters.map(m => {
                                 const mBookings = dateBookings.filter(b => this.isBookingForMaster(b, m));
                                 const mRev = mBookings.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
@@ -7427,7 +7429,7 @@ const BusinessDashboardView = {
                         </div>
 
                         <!-- Master Columns Grid -->
-                        <div class="flex-1 grid relative divide-x divide-slate-200/70" style="grid-template-columns: repeat(${masters.length}, minmax(0, 1fr));">
+                        <div class="flex-1 grid relative divide-x divide-slate-200/70" style="grid-template-columns: repeat(${masters.length}, minmax(220px, 1fr));">
                             ${showRedLine ? `
                                 <div class="absolute inset-x-0 z-30 pointer-events-none flex items-center" style="top: ${redLineTop}px;">
                                     <div class="w-2.5 h-2.5 rounded-full bg-rose-500 -ml-1"></div>
@@ -7550,8 +7552,8 @@ const BusinessDashboardView = {
         ];
 
         return `
-            <div class="p-4 sm:p-5">
-                <div class="grid grid-cols-1 md:grid-cols-7 gap-3">
+            <div class="p-4 sm:p-5 overflow-x-auto">
+                <div class="min-w-[980px] grid grid-cols-7 gap-3">
                     ${days.map((d, dayIdx) => {
                         const dayBookings = weeklyBookings.filter(b => (b.day && b.day.toLowerCase().includes(d.id)) || (b.date && new Date(b.date).getDay() === (dayIdx === 6 ? 0 : dayIdx + 1)));
                         return `
