@@ -1,0 +1,258 @@
+/* T-Bank / ABB Bank Inspired Product Stylesheet (Mobile First) */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #F4F5F8;
+    color: #1F2024;
+    font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Touch Friendly Utilities */
+.no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.touch-snap-x {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+.touch-snap-start {
+    scroll-snap-align: start;
+}
+
+/* Safe area inset for modern smartphones */
+.safe-pb {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Card Transitions */
+.product-card {
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease;
+}
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08);
+    border-color: #DDE0E6;
+}
+
+/* Top Category Selector Cards (Image 2 style) */
+.cat-card {
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    user-select: none;
+    -webkit-user-select: none;
+}
+.cat-card:active {
+    transform: scale(0.97);
+}
+.cat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -3px rgba(0, 0, 0, 0.08);
+}
+.cat-card.active {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.16);
+}
+
+/* Smooth Dynamic Content Fade */
+.fade-in-swap {
+    animation: swapAnimation 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Category Expansion Animation */
+.expand-slide-down {
+    animation: expandSlideDown 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes expandSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes swapAnimation {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.brand-card {
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.brand-card:active {
+    transform: scale(0.97);
+}
+.brand-card:hover {
+    transform: translateY(-2px);
+    border-color: #CBD5E1;
+    box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================================
+   ZEYVO DESIGN SYSTEM: SILKY SMOOTH MODAL ANIMATIONS (OPEN & CLOSE)
+   ========================================================================= */
+
+/* 1. Keyframes */
+
+/* Backdrop Fade In */
+@keyframes zeyvoModalFadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Backdrop Fade Out */
+@keyframes zeyvoModalFadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Desktop Modal Card In: subtle scale up + gentle slide up */
+@keyframes zeyvoModalCardIn {
+    0% {
+        opacity: 0;
+        transform: translateY(14px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Desktop Modal Card Out: subtle scale down + gentle sink */
+@keyframes zeyvoModalCardOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+}
+
+/* Mobile Bottom Sheet In (for items-end modals on mobile) */
+@keyframes zeyvoMobileSheetIn {
+    0% {
+        opacity: 0.8;
+        transform: translateY(100%);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Bottom Sheet Out */
+@keyframes zeyvoMobileSheetOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+}
+
+/* 2. Opening Rules (Applied when modal is not .hidden) */
+[id$="Modal"]:not(.hidden),
+[id*="Modal"]:not(.hidden),
+.modal-fade:not(.hidden) {
+    animation: zeyvoModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+[id$="Modal"]:not(.hidden) > div,
+[id*="Modal"]:not(.hidden) > div,
+.modal-fade:not(.hidden) > div {
+    animation: zeyvoModalCardIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    will-change: transform, opacity;
+}
+
+/* Mobile responsive bottom sheet when modal uses items-end on mobile screens */
+@media (max-width: 639px) {
+    .items-end[id$="Modal"]:not(.hidden) > div,
+    .items-end[id*="Modal"]:not(.hidden) > div,
+    .items-end.modal-fade:not(.hidden) > div {
+        animation: zeyvoMobileSheetIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+}
+
+/* 3. Closing Rules (Applied during 180ms .modal-closing transition) */
+.modal-closing,
+[id$="Modal"].modal-closing,
+[id*="Modal"].modal-closing,
+.modal-fade.modal-closing {
+    animation: zeyvoModalFadeOut 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    pointer-events: none !important;
+}
+
+.modal-closing > div,
+[id$="Modal"].modal-closing > div,
+[id*="Modal"].modal-closing > div,
+.modal-fade.modal-closing > div {
+    animation: zeyvoModalCardOut 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    pointer-events: none !important;
+}
+
+@media (max-width: 639px) {
+    .items-end.modal-closing > div,
+    .items-end[id$="Modal"].modal-closing > div,
+    .items-end[id*="Modal"].modal-closing > div,
+    .items-end.modal-fade.modal-closing > div {
+        animation: zeyvoMobileSheetOut 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    }
+}
+
+/* Custom Select styling (perfect chevron spacing & balanced padding) */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.2' stroke='%231F2024'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 14px 14px;
+    padding-right: 42px !important;
+    padding-left: 16px !important;
+    cursor: pointer;
+}
+
+/* Remove native number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+
