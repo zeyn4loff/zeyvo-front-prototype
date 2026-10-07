@@ -7082,20 +7082,24 @@ const BusinessDashboardView = {
         return {
             key: 'blue',
             isBlocked: false,
-            headerBg: 'bg-sky-50 text-sky-800 font-semibold',
-            headerText: 'text-sky-800',
-            border: 'border-slate-200/90',
-            bg: 'bg-white',
-            titleColor: 'text-slate-900',
-            serviceColor: 'text-slate-500',
-            subColor: 'text-slate-400',
-            priceColor: 'text-slate-900 font-bold',
-            badgeBg: 'bg-sky-50 text-sky-700 border border-sky-200/80',
+            headerBg: 'bg-sky-100 text-sky-900 font-semibold',
+            headerText: 'text-sky-900',
+            border: 'border-sky-300/80 hover:border-sky-400',
+            cardBorder: 'border-sky-300/80 hover:border-sky-400',
+            bg: 'bg-sky-100 hover:bg-sky-200/70',
+            cardBg: 'bg-sky-100 hover:bg-sky-200/70',
+            timeColor: 'text-sky-950 font-bold font-mono',
+            titleColor: 'text-sky-950 font-bold group-hover:text-sky-900',
+            serviceColor: 'text-sky-900/80 font-medium',
+            subColor: 'text-sky-800/80',
+            priceColor: 'text-sky-950 font-bold font-mono',
+            badgeBg: 'bg-white/90 text-sky-800 border border-sky-300/80 shadow-2xs',
+            dividerColor: 'border-sky-200/80',
             stripeBar: 'bg-sky-500',
-            statusBadgeText: 'text-sky-700',
-            backgroundColor: '#ffffff',
-            borderColor: '#e2e8f0',
-            textColor: '#0f172a',
+            statusBadgeText: 'text-sky-800',
+            backgroundColor: '#e0f2fe',
+            borderColor: '#7dd3fc',
+            textColor: '#082f49',
             accentColor: '#0284c7'
         };
     },
@@ -7468,22 +7472,22 @@ const BusinessDashboardView = {
                                                     ? `top: ${topOffset}px; height: ${blockHeight}px; left: calc(${leftPercent}% + 2px); width: calc(${colWidthPercent}% - 4px);`
                                                     : `top: ${topOffset}px; height: ${blockHeight}px; left: 4px; right: 4px;`;
 
-                                                return `
-                                                    <div style="${stylePosition}"
-                                                         class="absolute rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden z-10 group flex"
+                                                 return `
+                                                    <div style="${stylePosition} background-color: ${theme.backgroundColor || '#e0f2fe'}; border-color: ${theme.borderColor || '#7dd3fc'};"
+                                                         class="absolute rounded-xl border ${theme.cardBorder || theme.border || 'border-slate-200'} ${theme.cardBg || theme.bg || 'bg-white'} shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden z-10 group flex"
                                                          onclick="event.stopPropagation(); BusinessDashboardView.openBookingModal('${b.id}')">
                                                         
                                                         <!-- Left Status Stripe Bar -->
-                                                        <div class="w-1.5 shrink-0 ${theme.stripeBar} self-stretch"></div>
+                                                        <div class="w-1.5 shrink-0 ${theme.stripeBar || 'bg-sky-500'} self-stretch"></div>
 
                                                         <!-- Clean Zeyvo Card Body -->
                                                         <div class="p-1.5 sm:p-2 flex-1 flex flex-col justify-between min-w-0 overflow-hidden" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
                                                             <!-- Header row: Time & Status Pill Badge -->
                                                             <div class="flex items-center justify-between gap-1 min-w-0">
-                                                                <span class="text-[10px] sm:text-[11px] font-bold font-mono text-slate-800 tracking-tight shrink-0">${timeRange}</span>
+                                                                <span class="text-[10px] sm:text-[11px] font-bold font-mono ${theme.timeColor || 'text-slate-800'} tracking-tight shrink-0">${timeRange}</span>
                                                                 <div class="flex items-center gap-1 shrink-0 ml-auto min-w-0">
-                                                                    ${totalCols > 1 ? `<span class="text-[9px] bg-rose-50 text-rose-700 border border-rose-200/80 px-1 py-0.2 rounded font-bold" title="Vaxt toqquşması!">Toqquşma</span>` : ''}
-                                                                    ${b.note ? `<svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="${b.note}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
+                                                                    ${totalCols > 1 ? `<span class="text-[9px] bg-rose-100 text-rose-800 border border-rose-300 px-1 py-0.2 rounded font-bold" title="Vaxt toqquşması!">Toqquşma</span>` : ''}
+                                                                    ${b.note ? `<svg class="w-2.5 h-2.5 opacity-60 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="${b.note}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
                                                                     <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9px] font-semibold shrink-0 ${theme.badgeBg}">
                                                                         ${statusIcon}
                                                                         <span class="truncate max-w-[65px]">${b.status || 'Təsdiqləndi'}</span>
@@ -7494,19 +7498,19 @@ const BusinessDashboardView = {
                                                             <!-- Middle row: Client Name & Price -->
                                                             <div class="min-w-0 my-0.5">
                                                                 <div class="flex items-baseline justify-between gap-1">
-                                                                    <span class="text-[11px] sm:text-xs font-bold truncate leading-tight text-slate-900 group-hover:text-amber-600 transition-colors">${b.clientName || 'Müştəri'}</span>
-                                                                    ${b.price ? `<span class="text-[10px] sm:text-[11px] font-bold font-mono text-slate-900 shrink-0">${b.price} ₼</span>` : ''}
+                                                                    <span class="text-[11px] sm:text-xs font-bold truncate leading-tight ${theme.titleColor || 'text-slate-900'}">${b.clientName || 'Müştəri'}</span>
+                                                                    ${b.price ? `<span class="text-[10px] sm:text-[11px] font-bold font-mono ${theme.priceColor || 'text-slate-900'} shrink-0">${b.price} ₼</span>` : ''}
                                                                 </div>
-                                                                <div class="text-[10px] text-slate-500 font-medium truncate mt-0.5">
+                                                                <div class="text-[10px] ${theme.serviceColor || 'text-slate-600'} font-medium truncate mt-0.5">
                                                                     ${b.service || 'Xidmət'}
                                                                 </div>
                                                             </div>
 
                                                             <!-- Bottom row: Phone / Master / Extra info -->
                                                             ${blockHeight >= 62 ? `
-                                                                <div class="flex items-center justify-between text-[9px] text-slate-400 font-mono pt-1 border-t border-slate-100">
+                                                                <div class="flex items-center justify-between text-[9px] ${theme.subColor || 'text-slate-500'} font-mono pt-1 border-t ${theme.dividerColor || 'border-slate-200/60'}">
                                                                     <span class="truncate">${b.masterName ? b.masterName.split(' ')[0] : (b.phone || '')}</span>
-                                                                    ${b.source === 'online' ? `<span class="text-[9px] text-amber-700 font-sans font-semibold bg-amber-50 px-1 rounded border border-amber-200/60">Onlayn</span>` : ''}
+                                                                    ${b.source === 'online' ? `<span class="text-[9px] text-amber-900 font-sans font-semibold bg-white/90 px-1 rounded border border-amber-300">Onlayn</span>` : ''}
                                                                 </div>
                                                             ` : ''}
                                                         </div>
@@ -7565,16 +7569,17 @@ const BusinessDashboardView = {
                                         const statusIcon = this.getBookingStatusIconSvg(b.status);
                                         return `
                                             <div onclick="BusinessDashboardView.openBookingModal('${b.id}')"
-                                                 class="relative rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden flex group">
+                                                 style="background-color: ${theme.backgroundColor || '#e0f2fe'}; border-color: ${theme.borderColor || '#7dd3fc'};"
+                                                 class="relative rounded-xl border ${theme.cardBorder || theme.border || 'border-slate-200'} ${theme.cardBg || theme.bg || 'bg-white'} shadow-2xs hover:shadow-md transition cursor-pointer overflow-hidden flex group">
                                                 
                                                 <!-- Left Status Stripe Bar -->
-                                                <div class="w-1.5 shrink-0 ${theme.stripeBar} self-stretch"></div>
+                                                <div class="w-1.5 shrink-0 ${theme.stripeBar || 'bg-sky-500'} self-stretch"></div>
 
                                                 <!-- Clean Zeyvo Card Body -->
                                                 <div class="p-2 space-y-1 flex-1 min-w-0" ${theme.isBlocked ? `style="${theme.stripedStyle}"` : ''}>
                                                     <!-- Top row: Time & Status Pill -->
                                                     <div class="flex items-center justify-between gap-1 text-[11px] min-w-0">
-                                                        <span class="font-bold font-mono text-slate-800 tracking-tight shrink-0">${timeRange}</span>
+                                                        <span class="font-bold font-mono ${theme.timeColor || 'text-slate-800'} tracking-tight shrink-0">${timeRange}</span>
                                                         <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md text-[9px] font-semibold shrink-0 ${theme.badgeBg}">
                                                             ${statusIcon}
                                                             <span class="truncate max-w-[60px]">${b.status || 'Təsdiqləndi'}</span>
@@ -7583,17 +7588,17 @@ const BusinessDashboardView = {
 
                                                     <!-- Middle row: Client & Price -->
                                                     <div class="flex items-baseline justify-between gap-1 text-xs">
-                                                        <span class="font-bold text-slate-900 truncate group-hover:text-amber-600 transition-colors">${b.clientName || 'Müştəri'}</span>
-                                                        ${b.price ? `<span class="font-mono font-bold text-slate-900 shrink-0 text-[11px]">${b.price} ₼</span>` : ''}
+                                                        <span class="font-bold ${theme.titleColor || 'text-slate-900'} truncate">${b.clientName || 'Müştəri'}</span>
+                                                        ${b.price ? `<span class="font-mono font-bold ${theme.priceColor || 'text-slate-900'} shrink-0 text-[11px]">${b.price} ₼</span>` : ''}
                                                     </div>
 
                                                     <!-- Service -->
-                                                    <div class="text-[10px] text-slate-500 font-medium truncate">${b.service || 'Xidmət'}</div>
+                                                    <div class="text-[10px] ${theme.serviceColor || 'text-slate-600'} font-medium truncate">${b.service || 'Xidmət'}</div>
 
                                                     <!-- Bottom row: Phone / Master -->
-                                                    <div class="flex items-center justify-between text-[9px] text-slate-400 font-mono pt-1 border-t border-slate-100">
+                                                    <div class="flex items-center justify-between text-[9px] ${theme.subColor || 'text-slate-500'} font-mono pt-1 border-t ${theme.dividerColor || 'border-slate-200/60'}">
                                                         <span class="truncate">${b.phone || (b.masterName ? b.masterName.split(' ')[0] : '')}</span>
-                                                        ${b.note ? `<svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="${b.note}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
+                                                        ${b.note ? `<svg class="w-2.5 h-2.5 opacity-60 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="${b.note}"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>` : ''}
                                                     </div>
                                                 </div>
                                             </div>
