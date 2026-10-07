@@ -44129,7 +44129,7 @@ const BusinessDashboardView = {
             }
 
             return `
-                <div onclick="${isOutOfStock ? '' : `BusinessDashboardView.addToPosCart('${p.id}')`}" class="p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50 border-slate-200' : inCart ? 'cursor-pointer bg-amber-50/20 border-amber-400 ring-2 ring-amber-300 shadow-xs' : 'cursor-pointer bg-white border-slate-200/90 hover:border-amber-400 hover:shadow-xs active:scale-[0.98] group'}">
+                <div onclick="${isOutOfStock ? '' : `BusinessDashboardView.addToPosCart('${p.id}')`}" class="p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-50 border-slate-200' : inCart ? 'cursor-pointer bg-amber-50/25 border-amber-400 shadow-xs active:scale-[0.98] group' : 'cursor-pointer bg-white border-slate-200/90 hover:border-amber-400 hover:shadow-xs active:scale-[0.98] group'}">
                     <div>
                         <div class="flex items-start justify-between gap-1.5 mb-1.5">
                             <span class="text-[10px] text-slate-400 font-medium truncate">${this.escapeHtml(catName)}</span>
