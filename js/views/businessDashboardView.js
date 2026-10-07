@@ -43980,6 +43980,7 @@ const BusinessDashboardView = {
         // Reset state
         this.posCart = [];
         this.posSelectedClientId = '';
+        this.posClientSearchQuery = '';
         this.posSelectedSellerId = '';
         this.posDiscountAmount = 0;
         this.posDiscountPercent = 0;
@@ -43990,18 +43991,9 @@ const BusinessDashboardView = {
         this.posCategoryFilter = 'all';
         this.posNote = '';
 
-        // Populate clients dropdown
-        const clientSel = document.getElementById('posClientSelect');
-        if (clientSel) {
-            const clients = this.getClientsData ? this.getClientsData() : [];
-            clientSel.innerHTML = `
-                <option value="">Anonim müştəri (Walk-in / Qonaq)</option>
-                ${clients.map(c => `
-                    <option value="${c.id}">${this.escapeHtml(c.name)} (${c.phone || 'Nömrəsiz'})</option>
-                `).join('')}
-            `;
-            clientSel.value = '';
-        }
+        // Initialize searchable client trigger
+        this.renderPosClientTriggerUi();
+        this.togglePosClientDropdown(false);
 
         // Populate sellers dropdown (active staff)
         const sellerSel = document.getElementById('posSellerSelect');
@@ -44236,8 +44228,204 @@ const BusinessDashboardView = {
         this.renderPosCartUi();
     },
 
-    setPosClient: function(clientId) {
+    posClientSearchQuery: '',
+
+    renderPosClientTriggerUi: function() {
+        const contentEl = document.getElementById('posClientTriggerContent');
+        if (!contentEl) return;
+        const clients = this.getClientsData ? this.getClientsData() : [];
+        const client = clients.find(c => c.id === this.posSelectedClientId);
+
+        if (client) {
+            contentEl.innerHTML = `
+                <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    ${this.escapeHtml((client.name || 'M').charAt(0))}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-bold text-slate-900 truncate block leading-tight">${this.escapeHtml(client.name)}</span>
+                    <span class="text-[10px] text-slate-400 font-mono block leading-tight">${this.escapeHtml(client.phone || 'Nömrəsiz')}</span>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); BusinessDashboardView.selectPosClient('')" class="w-5 h-5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-rose-500 flex items-center justify-center shrink-0 cursor-pointer" title="Seçimi təmizlə">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            `;
+        } else {
+            contentEl.innerHTML = `
+                <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-semibold shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold text-slate-700 truncate block">Anonim müştəri</span>
+                    <span class="text-[10px] text-slate-400 block">Walk-in / Qonaq</span>
+                </div>
+            `;
+        }
+    },
+
+    togglePosClientDropdown: function(forceState) {
+        const dd = document.getElementById('posClientDropdown');
+        if (!dd) return;
+        const isHidden = dd.classList.contains('hidden');
+        const shouldShow = forceState !== undefined ? forceState : isHidden;
+
+        if (shouldShow) {
+            dd.classList.remove('hidden');
+            const searchInput = document.getElementById('posClientSearchInput');
+            if (searchInput) {
+                searchInput.value = this.posClientSearchQuery || '';
+                setTimeout(() => searchInput.focus(), 50);
+            }
+            this.renderPosClientDropdownList();
+        } else {
+            dd.classList.add('hidden');
+        }
+    },
+
+    onPosClientSearch: function(val) {
+        this.posClientSearchQuery = val || '';
+        this.renderPosClientDropdownList();
+    },
+
+    renderPosClientDropdownList: function() {
+        const container = document.getElementById('posClientListContainer');
+        if (!container) return;
+        const clients = this.getClientsData ? this.getClientsData() : [];
+        const q = (this.posClientSearchQuery || '').toLowerCase().trim();
+
+        let filtered = clients;
+        if (q) {
+            filtered = clients.filter(c => {
+                const nameMatch = (c.name || '').toLowerCase().includes(q);
+                const phoneDigits = (c.phone || '').replace(/\D/g, '');
+                const qDigits = q.replace(/\D/g, '');
+                const phoneMatch = qDigits.length > 0 && phoneDigits.includes(qDigits);
+                return nameMatch || phoneMatch;
+            });
+        }
+
+        let html = '';
+
+        // Option 1: Walk-in / Anonim
+        html += `
+            <div onclick="BusinessDashboardView.selectPosClient('')" class="p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition flex items-center justify-between ${!this.posSelectedClientId ? 'bg-amber-50/50' : ''}">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-semibold shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-xs font-semibold text-slate-800 block">Anonim müştəri</span>
+                        <span class="text-[10px] text-slate-400">Walk-in / Qonaq alıcı</span>
+                    </div>
+                </div>
+                ${!this.posSelectedClientId ? '<svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </div>
+        `;
+
+        if (filtered.length === 0) {
+            html += `
+                <div class="py-4 text-center text-slate-400 space-y-1.5">
+                    <p class="text-xs font-medium">Müştəri tapılmadı</p>
+                    ${q ? `
+                        <button type="button" onclick="BusinessDashboardView.openPosQuickAddClientModal('${this.escapeHtml(q)}')" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold transition cursor-pointer">
+                            + "${this.escapeHtml(q)}" kimi əlavə et
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        } else {
+            filtered.forEach(c => {
+                const isSelected = this.posSelectedClientId === c.id;
+                html += `
+                    <div onclick="BusinessDashboardView.selectPosClient('${c.id}')" class="p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-amber-50/50' : ''}">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                ${this.escapeHtml((c.name || 'M').charAt(0))}
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-xs font-bold text-slate-900 block truncate">${this.escapeHtml(c.name)}</span>
+                                <span class="text-[10px] text-slate-400 font-mono block">${this.escapeHtml(c.phone || 'Nömrəsiz')}</span>
+                            </div>
+                        </div>
+                        ${isSelected ? '<svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    </div>
+                `;
+            });
+        }
+
+        container.innerHTML = html;
+    },
+
+    selectPosClient: function(clientId) {
         this.posSelectedClientId = clientId || '';
+        this.renderPosClientTriggerUi();
+        this.togglePosClientDropdown(false);
+    },
+
+    setPosClient: function(clientId) {
+        this.selectPosClient(clientId);
+    },
+
+    openPosQuickAddClientModal: function(prefilledName) {
+        this.togglePosClientDropdown(false);
+        const modal = document.getElementById('bizPosQuickClientModal');
+        if (!modal) return;
+
+        const nameInput = document.getElementById('posNewClientName');
+        const phoneInput = document.getElementById('posNewClientPhone');
+        const catSelect = document.getElementById('posNewClientCategory');
+
+        if (nameInput) nameInput.value = prefilledName || this.posClientSearchQuery || '';
+        if (phoneInput) phoneInput.value = '';
+        if (catSelect) catSelect.value = 'new';
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            if (nameInput) nameInput.focus();
+        }, 50);
+    },
+
+    closePosQuickAddClientModal: function() {
+        const modal = document.getElementById('bizPosQuickClientModal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    savePosQuickAddClient: function() {
+        const nameInput = document.getElementById('posNewClientName');
+        const phoneInput = document.getElementById('posNewClientPhone');
+        const catSelect = document.getElementById('posNewClientCategory');
+
+        const name = (nameInput ? nameInput.value : '').trim();
+        const phone = (phoneInput ? phoneInput.value : '').trim();
+        const category = catSelect ? catSelect.value : 'new';
+
+        if (!name) {
+            if (typeof App !== 'undefined') App.showToast("Müştərinin adını daxil edin");
+            return;
+        }
+
+        let clients = this.getClientsData ? this.getClientsData() : [];
+        const newClient = {
+            id: 'CLI-' + Math.floor(1000 + Math.random() * 9000),
+            name: name,
+            phone: phone,
+            email: '',
+            gender: 'female',
+            category: category,
+            totalVisits: 0,
+            totalSpent: 0,
+            createdAt: new Date().toISOString(),
+            history: []
+        };
+
+        clients.unshift(newClient);
+        this.saveClientsData(clients);
+
+        this.closePosQuickAddClientModal();
+        this.selectPosClient(newClient.id);
+
+        if (typeof App !== 'undefined') {
+            App.showToast(`Yeni müştəri əlavə edildi: ${newClient.name}`);
+        }
     },
 
     setPosSeller: function(staffId) {
@@ -44713,12 +44901,41 @@ const BusinessDashboardView = {
                         <div class="lg:col-span-5 flex flex-col h-full min-h-0 overflow-hidden p-4 sm:p-5 bg-slate-50/40 space-y-3">
                             <!-- Customer & Seller Selectors -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 shrink-0">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Alıcı (Müştəri)</label>
-                                    <select id="posClientSelect" onchange="BusinessDashboardView.setPosClient(this.value)" class="w-full h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 outline-none">
-                                        <!-- Populated dynamically -->
-                                    </select>
+                                <!-- Searchable Client Combobox -->
+                                <div class="relative" id="posClientSelectorWrapper">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-[11px] font-bold text-slate-600">Alıcı (Müştəri)</label>
+                                        <button type="button" onclick="BusinessDashboardView.openPosQuickAddClientModal()" class="text-[10px] text-amber-700 hover:text-amber-800 font-bold hover:underline cursor-pointer flex items-center gap-0.5" title="Yeni müştəri əlavə et">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                                            <span>Yeni</span>
+                                        </button>
+                                    </div>
+                                    <div id="posClientTrigger" onclick="BusinessDashboardView.togglePosClientDropdown()" class="w-full h-9 px-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition flex items-center justify-between cursor-pointer shadow-2xs">
+                                        <div id="posClientTriggerContent" class="min-w-0 flex-1 flex items-center gap-1.5 text-left">
+                                            <!-- Dynamically populated -->
+                                        </div>
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+
+                                    <!-- Searchable Dropdown Popover -->
+                                    <div id="posClientDropdown" class="hidden absolute top-full left-0 right-0 mt-1 z-40 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-2 space-y-2 animate-in fade-in zoom-in-95 duration-100">
+                                        <div class="relative">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                            <input type="text" id="posClientSearchInput" oninput="BusinessDashboardView.onPosClientSearch(this.value)" placeholder="Ad və ya nömrə ilə axtar..." class="w-full h-8 pl-8 pr-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-amber-400 bg-slate-50 focus:bg-white" />
+                                        </div>
+
+                                        <button type="button" onclick="BusinessDashboardView.openPosQuickAddClientModal()" class="w-full py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold flex items-center justify-between transition cursor-pointer">
+                                            <span>+ Yeni müştəri əlavə et</span>
+                                            <span class="text-[10px] text-amber-600 font-semibold">Sürətli</span>
+                                        </button>
+
+                                        <div id="posClientListContainer" class="max-h-44 overflow-y-auto divide-y divide-slate-100">
+                                            <!-- Populated dynamically -->
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- Seller / Staff Selector -->
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Satıcı / Kassir</label>
                                     <select id="posSellerSelect" onchange="BusinessDashboardView.setPosSeller(this.value)" class="w-full h-9 px-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 outline-none">
@@ -44847,6 +45064,54 @@ const BusinessDashboardView = {
                     </div>
                 </div>
             </div>
+
+            <!-- ==========================================
+                 3. POS QUICK ADD CLIENT MODAL
+                 (GEMINI.md Rule 5 compliant: Clean header, no icons)
+            =========================================== -->
+            <div id="bizPosQuickClientModal" class="hidden fixed inset-0 z-60 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+                <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Yeni müştəri əlavə et</h3>
+                            <p class="text-xs text-slate-400">Sürətli qeydiyyat və kassa satışına bağlama</p>
+                        </div>
+                        <button type="button" onclick="BusinessDashboardView.closePosQuickAddClientModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer" title="Bağla">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <form id="posQuickAddClientForm" onsubmit="event.preventDefault(); BusinessDashboardView.savePosQuickAddClient();" class="space-y-3.5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Ad və Soyad <span class="text-rose-500">*</span></label>
+                            <input type="text" id="posNewClientName" required placeholder="Məs: Aysel Məmmədova" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-medium focus:border-[#FFDD2D] focus:ring-1 focus:ring-[#FFDD2D] outline-none" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Əlaqə nömrəsi <span class="text-rose-500">*</span></label>
+                            <input type="tel" id="posNewClientPhone" required placeholder="+994 (50) 000-00-00" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-mono font-medium focus:border-[#FFDD2D] focus:ring-1 focus:ring-[#FFDD2D] outline-none" />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kateqoriya / Qrup</label>
+                            <select id="posNewClientCategory" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium outline-none">
+                                <option value="new">Yeni müştəri</option>
+                                <option value="regular">Daimi müştəri</option>
+                                <option value="vip">VIP müştəri</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                            <button type="button" onclick="BusinessDashboardView.closePosQuickAddClientModal()" class="px-4 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer">
+                                Ləğv et
+                            </button>
+                            <button type="submit" class="px-5 h-10 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-xs cursor-pointer active:scale-95">
+                                Yadda saxla və seç
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         `;
     },
 
@@ -44858,6 +45123,11 @@ const BusinessDashboardView = {
                 if (!e.target.closest('[id$="DatePickerWrapper"]') && !e.target.closest('[id$="DateWrapper"]')) {
                     if (window.BusinessDashboardView && typeof window.BusinessDashboardView.closeAllCustomDatePickers === 'function') {
                         window.BusinessDashboardView.closeAllCustomDatePickers();
+                    }
+                }
+                if (!e.target.closest('#posClientSelectorWrapper') && !e.target.closest('#bizPosQuickClientModal')) {
+                    if (window.BusinessDashboardView && typeof window.BusinessDashboardView.togglePosClientDropdown === 'function') {
+                        window.BusinessDashboardView.togglePosClientDropdown(false);
                     }
                 }
             });
