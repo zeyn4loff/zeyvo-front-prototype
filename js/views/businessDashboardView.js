@@ -4916,14 +4916,7 @@ const BusinessDashboardView = {
                 </div>
             </div>
 
-            <!-- ==========================================
-                 MODAL: CALENDAR & JOURNAL COLOR SETTINGS
-            =========================================== -->
-            <div id="bizCalendarSettingsModal" onclick="if(event.target === this) BusinessDashboardView.closeCalendarSettingsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs modal-fade">
-                <div id="bizCalendarSettingsModalContainer" class="bg-white border border-slate-200/90 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl text-slate-800 max-h-[92vh] overflow-y-auto">
-                    <!-- Populated dynamically via renderCalendarSettingsModalHtml -->
-                </div>
-            </div>
+
 
             <!-- ==========================================
                  MODAL: WHATSAPP INTEGRATION & MARKETPLACE DETAILS
@@ -6975,18 +6968,6 @@ const BusinessDashboardView = {
                             </select>
                         </div>
 
-                        <!-- Color Mode Switcher Dropdown (Status / Service / Staff) -->
-                        <div class="flex items-center gap-1.5">
-                            <select onchange="BusinessDashboardView.setAppointmentColorMode(this.value)" class="h-9 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-semibold focus:outline-none focus:border-amber-400 cursor-pointer shadow-2xs" title="Qəbulların rənglənmə prinsipi">
-                                <option value="status" ${this.getAppointmentColorMode() === 'status' ? 'selected' : ''}>Rəng: Statusa görə</option>
-                                <option value="service" ${this.getAppointmentColorMode() === 'service' ? 'selected' : ''}>Rəng: Xidmətə görə</option>
-                                <option value="staff" ${this.getAppointmentColorMode() === 'staff' ? 'selected' : ''}>Rəng: Ustaya görə</option>
-                            </select>
-
-                            <button type="button" onclick="BusinessDashboardView.openCalendarSettingsModal()" class="h-9 w-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shadow-2xs cursor-pointer" title="Təqvim və rəng parametrləri">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </button>
-                        </div>
 
                         <!-- New Booking Button -->
                         <button type="button" onclick="BusinessDashboardView.openBookingModal(null, '${selDate}', '10:00')" class="h-9 px-4 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95">
@@ -7076,335 +7057,38 @@ const BusinessDashboardView = {
     },
 
     getAppointmentColorMode: function() {
-        if (typeof AppointmentColorService !== 'undefined') {
-            return AppointmentColorService.getColorMode();
-        }
         return 'status';
     },
 
     setAppointmentColorMode: function(mode) {
         if (typeof AppointmentColorService !== 'undefined') {
-            AppointmentColorService.setColorMode(mode);
+            AppointmentColorService.setColorMode('status');
         }
         this.refreshCalendar();
-        this.refreshCalendarSettingsModal();
-        const modeLabels = {
-            status: 'Statusa görə',
-            service: 'Xidmətə görə',
-            staff: 'Ustaya görə'
-        };
-        if (typeof App !== 'undefined') {
-            App.showToast(`Rənglənmə prinsipi: ${modeLabels[mode] || mode}`);
-        }
     },
 
     setServiceColor: function(serviceId, colorKey) {
-        if (typeof AppointmentColorService !== 'undefined') {
-            AppointmentColorService.setServiceColor(serviceId, colorKey);
-        }
         this.refreshCalendar();
-        this.refreshCalendarSettingsModal();
-        if (typeof App !== 'undefined') {
-            App.showToast('Xidmət rəngi yeniləndi');
-        }
     },
 
     setStaffColor: function(staffId, colorKey) {
-        if (typeof AppointmentColorService !== 'undefined') {
-            AppointmentColorService.setStaffColor(staffId, colorKey);
-        }
         this.refreshCalendar();
-        this.refreshCalendarSettingsModal();
-        if (typeof App !== 'undefined') {
-            App.showToast('Usta rəngi yeniləndi');
-        }
     },
 
     openCalendarSettingsModal: function() {
-        const modal = document.getElementById('bizCalendarSettingsModal');
-        const container = document.getElementById('bizCalendarSettingsModalContainer');
-        if (!modal || !container) return;
-        container.innerHTML = this.renderCalendarSettingsModalHtml();
-        modal.classList.remove('hidden');
+        // Disabled - colors strictly default to status
     },
 
     closeCalendarSettingsModal: function() {
-        const modal = document.getElementById('bizCalendarSettingsModal');
-        if (modal) modal.classList.add('hidden');
+        // Disabled - colors strictly default to status
     },
 
     refreshCalendarSettingsModal: function() {
-        const container = document.getElementById('bizCalendarSettingsModalContainer');
-        if (container) {
-            container.innerHTML = this.renderCalendarSettingsModalHtml();
-        }
+        // Disabled - colors strictly default to status
     },
 
     renderCalendarSettingsModalHtml: function() {
-        const currentMode = this.getAppointmentColorMode ? this.getAppointmentColorMode() : 'status';
-        const serviceColors = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getServiceColors() : {};
-        const staffColors = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getStaffColors() : {};
-        const services = this.getServices ? this.getServices() : [];
-        const staffList = this.getStaffList ? this.getStaffList() : [];
-        const statusPreviews = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getStatusPreviews() : [];
-
-        // Available palette colors for interactive color pickers
-        const pickerColors = [
-            { key: 'purple', name: 'Bənövşəyi', bg: '#9333ea' },
-            { key: 'blue',   name: 'Mavi', bg: '#0284c7' },
-            { key: 'emerald',name: 'Zümrüd', bg: '#059669' },
-            { key: 'teal',   name: 'Sakit Yaşıl', bg: '#0d9488' },
-            { key: 'amber',  name: 'Kəhrəba', bg: '#f59e0b' },
-            { key: 'indigo', name: 'İndiqo', bg: '#4f39f6' },
-            { key: 'rose',   name: 'Qırmızı', bg: '#f43f5e' },
-            { key: 'pink',   name: 'Çəhrayı', bg: '#ec4899' },
-            { key: 'orange', name: 'Narıncı', bg: '#ea580c' }
-        ];
-
-        return `
-            <div class="space-y-4">
-                <!-- 1. CLEAN STANDARD MODAL HEADER (NO ICON BADGE AS PER GEMINI.MD) -->
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
-                    <div>
-                        <h3 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">Təqvim və jurnal parametrləri</h3>
-                        <p class="text-xs text-slate-400 font-normal mt-0.5">Qeyd kartlarının rəng sxemini və vizual idarəetmə prinsipini seçin</p>
-                    </div>
-                    <button type="button" onclick="BusinessDashboardView.closeCalendarSettingsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer" title="Bağla">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <!-- 2. MODE SWITCHER CARDS (3 OPTIONS) -->
-                <div class="space-y-2">
-                    <label class="block text-xs font-bold text-slate-700">Rənglənmə prinsipi (Seçim)</label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <!-- Option 1: Status -->
-                        <div onclick="BusinessDashboardView.setAppointmentColorMode('status')"
-                             class="p-3.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${currentMode === 'status' ? 'border-[#101114] bg-amber-50/25 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'}">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-3 h-3 rounded-full ${currentMode === 'status' ? 'bg-[#101114]' : 'border-2 border-slate-300'}"></span>
-                                        <span class="text-xs font-bold text-slate-900">Statusa görə</span>
-                                    </div>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${currentMode === 'status' ? 'bg-[#FFDD2D] text-[#101114]' : 'bg-slate-200 text-slate-600'}">Standart</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">Kartın rəngi sifarişin statusuna görə avtomatik dəyişir.</p>
-                            </div>
-                            <div class="flex items-center gap-1.5 pt-2.5 mt-2.5 border-t border-slate-200/60">
-                                <span class="w-3 h-3 rounded-full bg-purple-600" title="Gözlənilir"></span>
-                                <span class="w-3 h-3 rounded-full bg-sky-600" title="Təsdiqləndi"></span>
-                                <span class="w-3 h-3 rounded-full bg-emerald-600" title="Gəldi"></span>
-                                <span class="w-3 h-3 rounded-full bg-teal-600" title="Tamamlandı"></span>
-                                <span class="w-3 h-3 rounded-full bg-amber-500" title="Onlayn müraciət"></span>
-                                <span class="w-3 h-3 rounded-full bg-rose-500" title="Ləğv edildi"></span>
-                            </div>
-                        </div>
-
-                        <!-- Option 2: Service -->
-                        <div onclick="BusinessDashboardView.setAppointmentColorMode('service')"
-                             class="p-3.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${currentMode === 'service' ? 'border-[#101114] bg-amber-50/25 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'}">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-3 h-3 rounded-full ${currentMode === 'service' ? 'bg-[#101114]' : 'border-2 border-slate-300'}"></span>
-                                        <span class="text-xs font-bold text-slate-900">Xidmətə görə</span>
-                                    </div>
-                                    <span class="text-[10px] font-semibold text-slate-400">Xidmət növü</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">Hər xidmət növünə fərdi rəng təyin edilir.</p>
-                            </div>
-                            <div class="flex items-center gap-1.5 pt-2.5 mt-2.5 border-t border-slate-200/60">
-                                <span class="w-3 h-3 rounded-full bg-pink-500"></span>
-                                <span class="w-3 h-3 rounded-full bg-purple-600"></span>
-                                <span class="w-3 h-3 rounded-full bg-sky-600"></span>
-                                <span class="w-3 h-3 rounded-full bg-emerald-600"></span>
-                                <span class="w-3 h-3 rounded-full bg-teal-600"></span>
-                            </div>
-                        </div>
-
-                        <!-- Option 3: Staff -->
-                        <div onclick="BusinessDashboardView.setAppointmentColorMode('staff')"
-                             class="p-3.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${currentMode === 'staff' ? 'border-[#101114] bg-amber-50/25 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'}">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-3 h-3 rounded-full ${currentMode === 'staff' ? 'bg-[#101114]' : 'border-2 border-slate-300'}"></span>
-                                        <span class="text-xs font-bold text-slate-900">Ustaya görə</span>
-                                    </div>
-                                    <span class="text-[10px] font-semibold text-slate-400">Əməkdaş</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">Hər bir ustanın öz fərdi rəngi olur.</p>
-                            </div>
-                            <div class="flex items-center gap-1.5 pt-2.5 mt-2.5 border-t border-slate-200/60">
-                                <span class="w-3 h-3 rounded-full bg-sky-600"></span>
-                                <span class="w-3 h-3 rounded-full bg-pink-500"></span>
-                                <span class="w-3 h-3 rounded-full bg-purple-600"></span>
-                                <span class="w-3 h-3 rounded-full bg-teal-600"></span>
-                                <span class="w-3 h-3 rounded-full bg-emerald-600"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. CONFIGURATION DETAIL (Status map / Service colors / Staff colors) -->
-                ${currentMode === 'status' ? `
-                    <div class="bg-slate-50/70 rounded-2xl border border-slate-200/80 p-4 space-y-3">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-900">Status rəngləri xəritəsi</h5>
-                                <p class="text-[11px] text-slate-500">Sifarişin hər bir vəziyyəti üçün təyin edilmiş standart rənglər</p>
-                            </div>
-                            <span class="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg shadow-2xs">
-                                8 status aktivdir
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
-                            ${statusPreviews.map(item => `
-                                <div class="p-2.5 rounded-xl border flex items-center justify-between gap-2 ${item.theme.border} ${item.theme.bg}">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <div class="w-2.5 h-6 rounded shrink-0 ${item.theme.stripeBar}"></div>
-                                        <div class="min-w-0">
-                                            <div class="text-xs font-bold text-slate-900">${item.labelAz}</div>
-                                            <p class="text-[10px] text-slate-500 truncate">${item.description}</p>
-                                        </div>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${item.theme.badgeBg}">
-                                        ${item.status}
-                                    </span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${currentMode === 'service' ? `
-                    <div class="bg-slate-50/70 rounded-2xl border border-slate-200/80 p-4 space-y-3">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-900">Xidmətlərin fərdi rəngləri</h5>
-                                <p class="text-[11px] text-slate-500">Hər xidmət üçün təqvim kartında göstəriləcək rəngi seçin</p>
-                            </div>
-                            <span class="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg shadow-2xs">
-                                ${services.length} xidmət
-                            </span>
-                        </div>
-                        <div class="divide-y divide-slate-200/60 max-h-56 overflow-y-auto pr-1">
-                            ${services.map(s => {
-                                const activeColorKey = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getColorForService(s.id) : 'sky';
-                                return `
-                                    <div class="py-2.5 flex items-center justify-between gap-3">
-                                        <div class="min-w-0 flex-1">
-                                            <div class="font-bold text-xs text-slate-900 truncate">${s.name}</div>
-                                            <div class="text-[10px] text-slate-400 font-normal truncate">${s.category || 'Ümumi'} • ${s.price ? s.price + ' ₼' : ''}</div>
-                                        </div>
-                                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                                            ${pickerColors.map(c => `
-                                                <button type="button"
-                                                        onclick="BusinessDashboardView.setServiceColor('${s.id}', '${c.key}')"
-                                                        class="w-5 h-5 rounded-full transition transform hover:scale-110 cursor-pointer ${activeColorKey === c.key ? 'ring-2 ring-[#101114] ring-offset-1 scale-110 shadow-xs' : 'opacity-70 hover:opacity-100'}"
-                                                        style="background-color: ${c.bg};"
-                                                        title="${c.name}">
-                                                </button>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${currentMode === 'staff' ? `
-                    <div class="bg-slate-50/70 rounded-2xl border border-slate-200/80 p-4 space-y-3">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-900">Ustaların fərdi rəngləri</h5>
-                                <p class="text-[11px] text-slate-500">Hər ustanın təqvimdəki qeydləri üçün unikal rəng təyin edin</p>
-                            </div>
-                            <span class="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg shadow-2xs">
-                                ${staffList.length} əməkdaş
-                            </span>
-                        </div>
-                        <div class="divide-y divide-slate-200/60 max-h-56 overflow-y-auto pr-1">
-                            ${staffList.map(m => {
-                                const activeColorKey = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getColorForStaff(m.id) : 'sky';
-                                const initials = (m.name || 'U').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
-                                return `
-                                    <div class="py-2.5 flex items-center justify-between gap-3">
-                                        <div class="flex items-center gap-2 min-w-0 flex-1">
-                                            <div class="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                                ${initials}
-                                            </div>
-                                            <div class="min-w-0">
-                                                <div class="font-bold text-xs text-slate-900 truncate">${m.name}</div>
-                                                <div class="text-[10px] text-slate-400 font-normal truncate">${m.role || 'Mütəxəssis'}</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                                            ${pickerColors.map(c => `
-                                                <button type="button"
-                                                        onclick="BusinessDashboardView.setStaffColor('${m.id}', '${c.key}')"
-                                                        class="w-5 h-5 rounded-full transition transform hover:scale-110 cursor-pointer ${activeColorKey === c.key ? 'ring-2 ring-[#101114] ring-offset-1 scale-110 shadow-xs' : 'opacity-70 hover:opacity-100'}"
-                                                        style="background-color: ${c.bg};"
-                                                        title="${c.name}">
-                                                </button>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <!-- 4. LIVE CARD PREVIEW -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-700">Təqvimdə kartın görünüşü (Nümunə)</span>
-                        <span class="text-[10px] font-semibold text-slate-400">Rejim: ${currentMode === 'status' ? 'Statusa görə' : (currentMode === 'service' ? 'Xidmətə görə' : 'Ustaya görə')}</span>
-                    </div>
-                    ${(() => {
-                        const sampleBooking = {
-                            id: 'sample-1',
-                            clientName: 'Rəşad Əliyev',
-                            serviceName: 'Saç kəsimi və saqqal',
-                            masterName: 'Samir Q.',
-                            masterId: 'st_1',
-                            serviceId: 'srv_1',
-                            price: 25,
-                            status: 'Gəldi',
-                            time: '14:00'
-                        };
-                        const theme = this.getAppointmentColor(sampleBooking);
-                        return `
-                            <div class="p-3 rounded-xl border relative shadow-2xs ${theme.bg} ${theme.border} text-slate-900">
-                                <div class="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl ${theme.stripeBar}"></div>
-                                <div class="flex items-center justify-between text-xs pl-2">
-                                    <span class="font-bold">14:00 – 14:45</span>
-                                    <span class="text-[11px] font-semibold opacity-80">Samir Q.</span>
-                                </div>
-                                <div class="font-bold text-xs truncate mt-1 pl-2">Rəşad Əliyev</div>
-                                <div class="text-[11px] opacity-80 truncate pl-2">Saç kəsimi və saqqal</div>
-                                <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-black/10 pl-2">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${theme.badgeBg}">
-                                        Gəldi statusunda
-                                    </span>
-                                    <span class="text-xs font-bold">25 ₼</span>
-                                </div>
-                            </div>
-                        `;
-                    })()}
-                </div>
-
-                <!-- 5. FOOTER ACTION -->
-                <div class="flex items-center justify-end pt-3 border-t border-slate-100">
-                    <button type="button" onclick="BusinessDashboardView.closeCalendarSettingsModal()" class="px-5 py-2.5 rounded-xl bg-[#101114] hover:bg-black text-white text-xs font-bold transition shadow-xs cursor-pointer">
-                        Bağla
-                    </button>
-                </div>
-            </div>
-        `;
+        return '';
     },
 
     getBookingColorTheme: function(booking) {
@@ -8349,34 +8033,7 @@ const BusinessDashboardView = {
                     </div>
                 </div>
 
-                <!-- 4.1. Color Theme Selection (EasyWeek Palette) -->
-                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="font-semibold text-slate-800 text-xs">Cədvəl rəngi (EasyWeek stili)</label>
-                        <span class="text-[11px] text-slate-500 font-medium">Qəbul kartının vizual fərqlənməsi</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap" id="bmColorPalette">
-                        ${[
-                            { id: 'yellow', name: 'Zeyvo Sarı', bg: '#f59e0b', ring: 'ring-amber-500' },
-                            { id: 'purple', name: 'Bənövşəyi', bg: '#9333ea', ring: 'ring-purple-600' },
-                            { id: 'blue',   name: 'Mavi', bg: '#0284c7', ring: 'ring-sky-600' },
-                            { id: 'pink',   name: 'Çəhrayı', bg: '#db2777', ring: 'ring-pink-600' },
-                            { id: 'green',  name: 'Yaşıl', bg: '#059669', ring: 'ring-emerald-600' },
-                            { id: 'orange', name: 'Narıncı', bg: '#ea580c', ring: 'ring-orange-500' },
-                            { id: 'teal',   name: 'Firuzəyi', bg: '#0d9488', ring: 'ring-teal-600' },
-                            { id: 'indigo', name: 'İndiqo', bg: '#4f46e5', ring: 'ring-indigo-600' },
-                            { id: 'blocked',name: 'Fasilə (Zolaqlı)', bg: '#64748b', ring: 'ring-slate-500' }
-                        ].map(c => `
-                            <button type="button" onclick="BusinessDashboardView.setBookingColor('${c.id}')"
-                                    class="bm-color-btn relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer ${curColor === c.id ? 'border-slate-900 bg-white ring-2 ' + c.ring + ' text-slate-900 shadow-2xs font-bold' : 'border-slate-200 bg-white/80 hover:bg-white text-slate-600'}"
-                                    data-color="${c.id}" title="${c.name}">
-                                <span class="w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs" style="background-color: ${c.bg};"></span>
-                                <span>${c.name}</span>
-                            </button>
-                        `).join('')}
-                    </div>
-                    <input type="hidden" id="bmColor" value="${curColor}" />
-                </div>
+                <input type="hidden" id="bmColor" value="${curColor}" />
 
                 <!-- 5. Payment Checkout Section (Shown on edit or when status is Tamamlandı) -->
                 ${(!isEdit && curStatus !== 'Tamamlandı') ? `
@@ -12671,301 +12328,9 @@ const BusinessDashboardView = {
     },
 
     // ----------------------------------------------------
-    // SECTION 7: TƏQVİM & JURNAL RƏNGLƏRİ (APPOINTMENT COLOR SETTINGS)
-    // ----------------------------------------------------
     renderSectionJournalSettings: function() {
-        return this.renderCalendarSettingsModalHtml();
+        return '';
     },
-
-    _renderSectionJournalSettingsDeprecated: function() {
-        const currentMode = this.getAppointmentColorMode ? this.getAppointmentColorMode() : 'status';
-        const serviceColors = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getServiceColors() : {};
-        const staffColors = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getStaffColors() : {};
-        const services = this.getServices ? this.getServices() : [];
-        const staffList = this.getStaffList ? this.getStaffList() : [];
-        const statusPreviews = (typeof AppointmentColorService !== 'undefined') ? AppointmentColorService.getStatusPreviews() : [];
-
-        // Available palette colors for interactive color pickers
-        const pickerColors = [
-            { key: 'purple', name: 'Bənövşəyi', bg: '#9333ea' },
-            { key: 'blue',   name: 'Mavi', bg: '#0284c7' },
-            { key: 'emerald',name: 'Zümrüd', bg: '#059669' },
-            { key: 'teal',   name: 'Sakit Yaşıl', bg: '#0d9488' },
-            { key: 'amber',  name: 'Kəhrəba', bg: '#f59e0b' },
-            { key: 'indigo', name: 'İndiqo', bg: '#4f39f6' },
-            { key: 'rose',   name: 'Qırmızı', bg: '#f43f5e' },
-            { key: 'pink',   name: 'Çəhrayı', bg: '#ec4899' },
-            { key: 'orange', name: 'Narıncı', bg: '#ea580c' }
-        ];
-
-        return `
-            <div class="space-y-5">
-                <!-- 1. HEADER CARD -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                        <div>
-                            <h4 class="text-sm font-bold text-tbank-graphite">Jurnal və Təqvim qeydlərinin rənglənməsi</h4>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">Təqvimdəki qeyd kartlarının rəng sxemini və vizual idarəetmə prinsipini seçin</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <a href="#/business/calendar" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span>Təqvimə keç</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- 2. MODE SWITCHER CARDS (3 OPTIONS) -->
-                    <div class="pt-4 space-y-3">
-                        <label class="block text-xs font-bold text-slate-700">Rənglənmə prinsipi (Seçim)</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <!-- Option 1: Status (Default) -->
-                            <div onclick="BusinessDashboardView.setAppointmentColorMode('status')"
-                                 class="p-4 rounded-xl border-2 transition cursor-pointer flex flex-col justify-between ${currentMode === 'status' ? 'border-[#101114] bg-amber-50/20 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'}">
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-3 h-3 rounded-full ${currentMode === 'status' ? 'bg-[#101114]' : 'border-2 border-slate-300'}"></span>
-                                            <span class="text-xs font-bold text-slate-900">Statusa görə</span>
-                                        </div>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${currentMode === 'status' ? 'bg-[#FFDD2D] text-[#101114]' : 'bg-slate-200 text-slate-600'}">Standart</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 leading-relaxed">Kartın rəngi sifarişin icra statusuna (Planlaşdırılıb, Təsdiqləndi, Gəldi və s.) görə avtomatik dəyişir.</p>
-                                </div>
-                                <div class="flex items-center gap-1.5 pt-3 mt-3 border-t border-slate-200/60">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-600" title="Gözlənilir"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-sky-600" title="Təsdiqləndi"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-600" title="Gəldi"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-teal-600" title="Tamamlandı"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500" title="Onlayn müraciət"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-rose-500" title="Ləğv edildi"></span>
-                                </div>
-                            </div>
-
-                            <!-- Option 2: Service -->
-                            <div onclick="BusinessDashboardView.setAppointmentColorMode('service')"
-                                 class="p-4 rounded-xl border-2 transition cursor-pointer flex flex-col justify-between ${currentMode === 'service' ? 'border-[#101114] bg-amber-50/20 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'}">
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-3 h-3 rounded-full ${currentMode === 'service' ? 'bg-[#101114]' : 'border-2 border-slate-300'}"></span>
-                                            <span class="text-xs font-bold text-slate-900">Xidmətə görə</span>
-                                        </div>
-                                        <span class="text-[10px] font-semibold text-slate-400">Xidmət növü</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 leading-relaxed">Hər xidmət növünə fərdi rəng təyin edilir. Qeyd kartı xidmətin rəngində göstərilir.</p>
-                                </div>
-                                <div class="flex items-center gap-1.5 pt-3 mt-3 border-t border-slate-200/60">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-pink-500" title="Manikür"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-600" title="Saç kəsimi"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-sky-600" title="Barber"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-600" title="Kosmetologiya"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-teal-600" title="Masaj"></span>
-                                </div>
-                            </div>
-
-                            <!-- Option 3: Staff -->
-                            <div onclick="BusinessDashboardView.setAppointmentColorMode('staff')"
-                                 class="p-4 rounded-xl border-2 transition cursor-pointer flex flex-col justify-between ${currentMode === 'staff' ? 'border-[#101114] bg-amber-50/20 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white'}">
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-3 h-3 rounded-full ${currentMode === 'staff' ? 'bg-[#101114]' : 'border-2 border-slate-300'}"></span>
-                                            <span class="text-xs font-bold text-slate-900">Ustaya görə</span>
-                                        </div>
-                                        <span class="text-[10px] font-semibold text-slate-400">Əməkdaş</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 leading-relaxed">Hər bir ustanın öz fərdi rəngi olur. Bütün təqvim qrafikində həmin ustanın qeydləri seçilmiş rəngdə olur.</p>
-                                </div>
-                                <div class="flex items-center gap-1.5 pt-3 mt-3 border-t border-slate-200/60">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-sky-600" title="Samir"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-pink-500" title="Aygün"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-600" title="Nigar"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-teal-600" title="Kamran"></span>
-                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-600" title="Leyla"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. CONDITIONAL DETAILED CONFIGURATION SECTION -->
-                ${currentMode === 'status' ? `
-                    <!-- SUB-SECTION A: STATUS COLOR LEGEND & PREVIEWS -->
-                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <div>
-                                <h5 class="text-sm font-bold text-slate-900">Status rəngləri xəritəsi</h5>
-                                <p class="text-xs text-slate-500 font-medium">Sifarişin hər bir vəziyyəti üçün təyin edilmiş standart rənglər</p>
-                            </div>
-                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                8 status aktivdir
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            ${statusPreviews.map(item => `
-                                <div class="p-3 rounded-xl border flex items-center justify-between gap-3 ${item.theme.border} ${item.theme.bg}">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-3 h-8 rounded-md shrink-0 ${item.theme.stripeBar}"></div>
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-xs font-bold text-slate-900">${item.labelAz}</span>
-                                            </div>
-                                            <p class="text-[11px] text-slate-600 truncate mt-0.5">${item.description}</p>
-                                        </div>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${item.theme.badgeBg}">
-                                        ${item.status}
-                                    </span>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <!-- LIVE PREVIEW EXAMPLE CARD -->
-                        <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                                <span>Təqvimdə kartın görünüşü (Canlı nümunə)</span>
-                                <span class="text-[11px] text-slate-500 font-normal">Gəldi statusunda</span>
-                            </div>
-                            <div class="max-w-sm rounded-xl border border-emerald-300 bg-emerald-50/90 shadow-2xs overflow-hidden">
-                                <div class="h-6 px-2.5 flex items-center justify-between text-[11px] font-bold bg-emerald-600 text-white">
-                                    <span>14:00 – 14:45</span>
-                                    <span class="text-[10px] font-medium opacity-90">Samir Q.</span>
-                                </div>
-                                <div class="p-2.5 space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-bold text-slate-900">Rəşad Əliyev</span>
-                                        <span class="text-xs font-bold text-emerald-950">25 ₼</span>
-                                    </div>
-                                    <div class="text-[11px] text-emerald-950 font-medium">Saç kəsimi və formalaşdırma</div>
-                                    <div class="flex items-center justify-between pt-1">
-                                        <span class="text-[10px] text-emerald-700">+994 50 123-45-67</span>
-                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-900">Gəldi</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${currentMode === 'service' ? `
-                    <!-- SUB-SECTION B: SERVICES COLOR CONFIGURATION -->
-                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                            <div>
-                                <h5 class="text-sm font-bold text-slate-900">Xidmətlər üzrə rəng seçimi</h5>
-                                <p class="text-xs text-slate-500 font-medium">Hər xidmət üçün rəng seçin. Rəng seçilmədikdə xidmət növünə uyğun standart rəng istifadə edilir.</p>
-                            </div>
-                            <span class="text-xs text-slate-500 font-semibold bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
-                                ${services.length} xidmət
-                            </span>
-                        </div>
-
-                        <div class="divide-y divide-slate-100">
-                            ${services.map(s => {
-                                const activeColorKey = serviceColors[s.id] || (AppointmentColorService.resolveByService({ service: s.name, color: s.color }).key);
-                                return `
-                                    <div class="py-3 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-2">
-                                                <h6 class="text-xs font-bold text-slate-900 truncate">${s.name}</h6>
-                                                <span class="text-[10px] text-slate-400 font-semibold px-1.5 py-0.5 rounded bg-slate-100">${s.duration || s.durationMinutes || 30} dəq</span>
-                                            </div>
-                                            <p class="text-[11px] text-slate-500 mt-0.5">${s.price || 0} ₼ • ${s.categoryName || s.category || 'Xidmət'}</p>
-                                        </div>
-
-                                        <!-- Palette Swatch Selector -->
-                                        <div class="flex items-center gap-1.5 flex-wrap shrink-0">
-                                            ${pickerColors.map(c => {
-                                                const isSelected = activeColorKey === c.key;
-                                                return `
-                                                    <button type="button"
-                                                            onclick="BusinessDashboardView.setServiceColor('${s.id}', '${c.key}')"
-                                                            class="w-6 h-6 rounded-full transition flex items-center justify-center cursor-pointer ${isSelected ? 'ring-2 ring-offset-2 ring-slate-900 scale-110 shadow-xs' : 'hover:scale-105 opacity-85 hover:opacity-100'}"
-                                                            style="background-color: ${c.bg};"
-                                                            title="${c.name}">
-                                                        ${isSelected ? `<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>` : ''}
-                                                    </button>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${currentMode === 'staff' ? `
-                    <!-- SUB-SECTION C: STAFF COLOR CONFIGURATION -->
-                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                            <div>
-                                <h5 class="text-sm font-bold text-slate-900">Ustalar üzrə rəng seçimi</h5>
-                                <p class="text-xs text-slate-500 font-medium">Hər əməkdaş üçün təqvimdə qeydlərinin fərqlənməsi üçün rəng seçin.</p>
-                            </div>
-                            <span class="text-xs text-slate-500 font-semibold bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
-                                ${staffList.length} əməkdaş
-                            </span>
-                        </div>
-
-                        <div class="divide-y divide-slate-100">
-                            ${staffList.map(m => {
-                                const activeColorKey = staffColors[m.id] || (AppointmentColorService.resolveByStaff({ masterId: m.id, masterName: m.name }).key);
-                                const initials = (m.name || 'U').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
-                                return `
-                                    <div class="py-3 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-200">
-                                                ${initials}
-                                            </div>
-                                            <div class="min-w-0">
-                                                <h6 class="text-xs font-bold text-slate-900 truncate">${m.name}</h6>
-                                                <p class="text-[11px] text-slate-500 mt-0.5">${m.role || m.specialty || 'Usta'} • ${m.phone || ''}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Palette Swatch Selector -->
-                                        <div class="flex items-center gap-1.5 flex-wrap shrink-0">
-                                            ${pickerColors.map(c => {
-                                                const isSelected = activeColorKey === c.key;
-                                                return `
-                                                    <button type="button"
-                                                            onclick="BusinessDashboardView.setStaffColor('${m.id}', '${c.key}')"
-                                                            class="w-6 h-6 rounded-full transition flex items-center justify-center cursor-pointer ${isSelected ? 'ring-2 ring-offset-2 ring-slate-900 scale-110 shadow-xs' : 'hover:scale-105 opacity-85 hover:opacity-100'}"
-                                                            style="background-color: ${c.bg};"
-                                                            title="${c.name}">
-                                                        ${isSelected ? `<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>` : ''}
-                                                    </button>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <!-- 4. BOTTOM ACTION BAR -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-                    <button type="button"
-                            onclick="BusinessDashboardView.setAppointmentColorMode('status')"
-                            class="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition">
-                        Standart status rejiminə sıfırla
-                    </button>
-
-                    <a href="#/business/calendar"
-                       class="h-10 px-6 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold text-xs flex items-center justify-center gap-2 shadow-2xs transition">
-                        <span>Təqvim jurnalını aç</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </a>
-                </div>
-            </div>
-        `;
-    },
-
     openDeleteProfileModal: function() {
         this.openDeleteConfirmModal({
             title: "Profili sil",

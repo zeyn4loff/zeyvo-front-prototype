@@ -257,18 +257,14 @@
             }
         },
 
-        // Get saved mode ('status' | 'service' | 'staff')
+        // Get color mode (strictly 'status' by default)
         getColorMode: function() {
-            try {
-                return localStorage.getItem(this.STORAGE_KEY_MODE) || 'status';
-            } catch (e) {
-                return 'status';
-            }
+            return 'status';
         },
 
         setColorMode: function(mode) {
             try {
-                localStorage.setItem(this.STORAGE_KEY_MODE, mode || 'status');
+                localStorage.setItem(this.STORAGE_KEY_MODE, 'status');
             } catch (e) {}
         },
 
@@ -456,19 +452,11 @@
                 });
             }
 
-            const mode = colorMode || this.getColorMode();
-            let theme;
-
-            if (mode === 'service') {
-                theme = this.resolveByService(appointment);
-            } else if (mode === 'staff') {
-                theme = this.resolveByStaff(appointment);
-            } else {
-                theme = this.resolveByStatus(appointment);
-            }
+            // Card colors strictly resolve by status by default
+            const theme = this.resolveByStatus(appointment);
 
             return Object.assign({}, theme, {
-                mode: mode,
+                mode: 'status',
                 isBlocked: false
             });
         },
@@ -545,6 +533,10 @@
             ];
         }
     };
+
+    try {
+        localStorage.setItem(AppointmentColorService.STORAGE_KEY_MODE, 'status');
+    } catch (e) {}
 
     window.AppointmentColorService = AppointmentColorService;
 
