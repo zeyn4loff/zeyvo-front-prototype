@@ -6872,8 +6872,12 @@ const BusinessDashboardView = {
     calendarMasterFilter: 'all',
     calendarStatusFilter: 'all',
     calendarSearchQuery: '',
-    pendingOnlineTab: 'all', // 'all' | 'all_pending' | 'today' | 'confirmed'
+    pendingOnlineTab: 'all', // 'all' | 'all_pending' | 'today' | 'confirmed' | 'custom'
     pendingOnlineSearchQuery: '',
+    pendingOnlineStatusFilter: 'all',
+    pendingOnlineDateFilter: 'all',
+    pendingOnlineMasterFilter: 'all',
+    pendingOnlineSortBy: 'date_asc',
     pendingOnlinePage: 1,
     pendingOnlinePageSize: 10,
     calendarPage: 1,
@@ -6899,8 +6903,33 @@ const BusinessDashboardView = {
         this.refreshCalendar();
     },
 
+    setPendingOnlineSearch: function(val) {
+        this.pendingOnlineSearchQuery = val || '';
+        this.pendingOnlinePage = 1;
+        this.refreshCalendar();
+    },
+
+    clearPendingOnlineSearch: function() {
+        this.pendingOnlineSearchQuery = '';
+        this.pendingOnlinePage = 1;
+        this.refreshCalendar();
+    },
+
     setPendingOnlineTab: function(tab) {
         this.pendingOnlineTab = tab;
+        if (tab === 'today') {
+            this.pendingOnlineStatusFilter = 'Gözlənilir';
+            this.pendingOnlineDateFilter = 'today';
+        } else if (tab === 'all_pending') {
+            this.pendingOnlineStatusFilter = 'Gözlənilir';
+            this.pendingOnlineDateFilter = 'all';
+        } else if (tab === 'confirmed') {
+            this.pendingOnlineStatusFilter = 'Təsdiqləndi';
+            this.pendingOnlineDateFilter = 'all';
+        } else {
+            this.pendingOnlineStatusFilter = 'all';
+            this.pendingOnlineDateFilter = 'all';
+        }
         this.pendingOnlinePage = 1;
         this.refreshCalendar();
     },
@@ -6912,6 +6941,140 @@ const BusinessDashboardView = {
 
     setPendingOnlinePageSize: function(sz) {
         this.pendingOnlinePageSize = parseInt(sz, 10);
+        this.pendingOnlinePage = 1;
+        this.refreshCalendar();
+    },
+
+    openPendingOnlineFilterModal: function() {
+        const modal = document.getElementById('bizPendingOnlineFilterModal');
+        if (!modal) return;
+
+        this.pendingOnlineTempStatus = this.pendingOnlineStatusFilter || 'all';
+        this.pendingOnlineTempDate = this.pendingOnlineDateFilter || 'all';
+        this.pendingOnlineTempMaster = this.pendingOnlineMasterFilter || 'all';
+        this.pendingOnlineTempSort = this.pendingOnlineSortBy || 'date_asc';
+
+        this.selectPendingOnlineFilterStatus(this.pendingOnlineTempStatus);
+        this.selectPendingOnlineFilterDate(this.pendingOnlineTempDate);
+        this.selectPendingOnlineFilterSort(this.pendingOnlineTempSort);
+
+        const masterSelect = document.getElementById('poFilterMasterSelect');
+        if (masterSelect) {
+            masterSelect.value = this.pendingOnlineTempMaster;
+        }
+
+        modal.classList.remove('hidden');
+    },
+
+    closePendingOnlineFilterModal: function() {
+        const modal = document.getElementById('bizPendingOnlineFilterModal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    selectPendingOnlineFilterStatus: function(val) {
+        this.pendingOnlineTempStatus = val;
+        ['all', 'Gözlənilir', 'Təsdiqləndi', 'Ləğv edildi'].forEach(st => {
+            const btn = document.getElementById('poFilterStatusBtn_' + st);
+            if (btn) {
+                if (st === val) {
+                    btn.className = 'p-2.5 rounded-xl border border-slate-900 bg-white text-slate-900 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer shadow-xs font-bold ring-1 ring-slate-900';
+                } else {
+                    btn.className = 'p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium';
+                }
+            }
+        });
+    },
+
+    selectPendingOnlineFilterDate: function(val) {
+        this.pendingOnlineTempDate = val;
+        ['all', 'today', 'tomorrow', 'this_week'].forEach(d => {
+            const btn = document.getElementById('poFilterDateBtn_' + d);
+            if (btn) {
+                if (d === val) {
+                    btn.className = 'p-2.5 rounded-xl border border-slate-900 bg-white text-slate-900 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer shadow-xs font-bold ring-1 ring-slate-900';
+                } else {
+                    btn.className = 'p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium';
+                }
+            }
+        });
+    },
+
+    selectPendingOnlineFilterSort: function(val) {
+        this.pendingOnlineTempSort = val;
+        ['date_asc', 'date_desc', 'price_desc', 'price_asc', 'name_asc'].forEach(s => {
+            const btn = document.getElementById('poFilterSortBtn_' + s);
+            if (btn) {
+                if (s === val) {
+                    btn.className = 'w-full p-2.5 rounded-xl border border-slate-900 bg-white text-slate-900 flex items-center justify-between text-left transition cursor-pointer shadow-xs font-bold ring-1 ring-slate-900';
+                } else {
+                    btn.className = 'w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex items-center justify-between text-left transition cursor-pointer font-medium';
+                }
+            }
+        });
+    },
+
+    applyPendingOnlineFilterModal: function() {
+        this.pendingOnlineStatusFilter = this.pendingOnlineTempStatus || 'all';
+        this.pendingOnlineDateFilter = this.pendingOnlineTempDate || 'all';
+        this.pendingOnlineSortBy = this.pendingOnlineTempSort || 'date_asc';
+
+        const masterSelect = document.getElementById('poFilterMasterSelect');
+        if (masterSelect) {
+            this.pendingOnlineMasterFilter = masterSelect.value || 'all';
+        }
+
+        if (this.pendingOnlineStatusFilter === 'Gözlənilir' && this.pendingOnlineDateFilter === 'today') {
+            this.pendingOnlineTab = 'today';
+        } else if (this.pendingOnlineStatusFilter === 'Gözlənilir' && this.pendingOnlineDateFilter === 'all') {
+            this.pendingOnlineTab = 'all_pending';
+        } else if (this.pendingOnlineStatusFilter === 'Təsdiqləndi' && this.pendingOnlineDateFilter === 'all') {
+            this.pendingOnlineTab = 'confirmed';
+        } else if (this.pendingOnlineStatusFilter === 'all' && this.pendingOnlineDateFilter === 'all') {
+            this.pendingOnlineTab = 'all';
+        } else {
+            this.pendingOnlineTab = 'custom';
+        }
+
+        this.pendingOnlinePage = 1;
+        this.closePendingOnlineFilterModal();
+        this.refreshCalendar();
+    },
+
+    resetPendingOnlineModalFilters: function() {
+        this.selectPendingOnlineFilterStatus('all');
+        this.selectPendingOnlineFilterDate('all');
+        this.selectPendingOnlineFilterSort('date_asc');
+        const masterSelect = document.getElementById('poFilterMasterSelect');
+        if (masterSelect) masterSelect.value = 'all';
+    },
+
+    resetAllPendingOnlineFilters: function() {
+        this.pendingOnlineStatusFilter = 'all';
+        this.pendingOnlineDateFilter = 'all';
+        this.pendingOnlineMasterFilter = 'all';
+        this.pendingOnlineSortBy = 'date_asc';
+        this.pendingOnlineSearchQuery = '';
+        this.pendingOnlineTab = 'all';
+        this.pendingOnlinePage = 1;
+        this.refreshCalendar();
+    },
+
+    clearPendingOnlineFilter: function(key) {
+        if (key === 'status') {
+            this.pendingOnlineStatusFilter = 'all';
+            if (this.pendingOnlineTab === 'all_pending' || this.pendingOnlineTab === 'confirmed') {
+                this.pendingOnlineTab = 'all';
+            }
+        } else if (key === 'date') {
+            this.pendingOnlineDateFilter = 'all';
+            if (this.pendingOnlineTab === 'today') {
+                this.pendingOnlineTab = 'all';
+            }
+        } else if (key === 'master') {
+            this.pendingOnlineMasterFilter = 'all';
+        } else if (key === 'sort') {
+            this.pendingOnlineSortBy = 'date_asc';
+        }
         this.pendingOnlinePage = 1;
         this.refreshCalendar();
     },
@@ -7681,29 +7844,78 @@ const BusinessDashboardView = {
         const todayPendingCount = onlineList.filter(b => b.status === 'Gözlənilir' && b.date === todayStr).length;
         const confirmedOnlineCount = onlineList.filter(b => b.status === 'Təsdiqləndi').length;
 
-        // Apply tab filter
-        let filtered = onlineList;
-        if (this.pendingOnlineTab === 'today') {
-            filtered = filtered.filter(b => b.date === todayStr && b.status === 'Gözlənilir');
-        } else if (this.pendingOnlineTab === 'all_pending') {
-            filtered = filtered.filter(b => b.status === 'Gözlənilir');
-        } else if (this.pendingOnlineTab === 'confirmed') {
-            filtered = filtered.filter(b => b.status === 'Təsdiqləndi');
-        }
+        // Apply filters
+        let filtered = onlineList.filter(b => {
+            // Status filter
+            if (this.pendingOnlineStatusFilter === 'Gözlənilir' && b.status !== 'Gözlənilir') return false;
+            if (this.pendingOnlineStatusFilter === 'Təsdiqləndi' && b.status !== 'Təsdiqləndi') return false;
+            if (this.pendingOnlineStatusFilter === 'Ləğv edildi' && b.status !== 'Ləğv edildi') return false;
 
-        // Apply search query
-        if (this.pendingOnlineSearchQuery) {
-            const q = this.pendingOnlineSearchQuery.toLowerCase().trim();
-            filtered = filtered.filter(b =>
-                (b.clientName && b.clientName.toLowerCase().includes(q)) ||
-                (b.phone && b.phone.includes(q)) ||
-                (b.service && b.service.toLowerCase().includes(q)) ||
-                (b.masterName && b.masterName.toLowerCase().includes(q))
-            );
-        }
+            // Date filter
+            if (this.pendingOnlineDateFilter === 'today' && b.date !== todayStr) return false;
+            if (this.pendingOnlineDateFilter === 'tomorrow') {
+                const tom = new Date();
+                tom.setDate(tom.getDate() + 1);
+                const tomStr = tom.toISOString().split('T')[0];
+                if (b.date !== tomStr) return false;
+            }
+            if (this.pendingOnlineDateFilter === 'this_week') {
+                const d = new Date(b.date);
+                const now = new Date();
+                const dayOfWeek = now.getDay() || 7;
+                const mon = new Date(now);
+                mon.setDate(now.getDate() - dayOfWeek + 1);
+                mon.setHours(0, 0, 0, 0);
+                const sun = new Date(mon);
+                sun.setDate(mon.getDate() + 6);
+                sun.setHours(23, 59, 59, 999);
+                if (d < mon || d > sun) return false;
+            }
+
+            // Master filter
+            if (this.pendingOnlineMasterFilter && this.pendingOnlineMasterFilter !== 'all') {
+                const qm = this.pendingOnlineMasterFilter.toLowerCase();
+                const mName = (b.masterName || '').toLowerCase();
+                if (!mName.includes(qm)) return false;
+            }
+
+            // Search query
+            if (this.pendingOnlineSearchQuery) {
+                const q = this.pendingOnlineSearchQuery.toLowerCase().trim();
+                const mClient = (b.clientName && b.clientName.toLowerCase().includes(q));
+                const mPhone = (b.phone && b.phone.includes(q));
+                const mService = (b.service && b.service.toLowerCase().includes(q));
+                const mMaster = (b.masterName && b.masterName.toLowerCase().includes(q));
+                if (!mClient && !mPhone && !mService && !mMaster) return false;
+            }
+
+            return true;
+        });
+
+        // Sorting
+        filtered.sort((a, b) => {
+            if (this.pendingOnlineSortBy === 'date_desc') {
+                return (b.date + ' ' + (b.time || '')) > (a.date + ' ' + (a.time || '')) ? 1 : -1;
+            } else if (this.pendingOnlineSortBy === 'price_desc') {
+                return (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0);
+            } else if (this.pendingOnlineSortBy === 'price_asc') {
+                return (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0);
+            } else if (this.pendingOnlineSortBy === 'name_asc') {
+                return (a.clientName || '').localeCompare(b.clientName || '');
+            } else {
+                return (a.date + ' ' + (a.time || '')) > (b.date + ' ' + (b.time || '')) ? 1 : -1;
+            }
+        });
+
+        let activeFilterCount = 0;
+        if (this.pendingOnlineStatusFilter && this.pendingOnlineStatusFilter !== 'all') activeFilterCount++;
+        if (this.pendingOnlineDateFilter && this.pendingOnlineDateFilter !== 'all') activeFilterCount++;
+        if (this.pendingOnlineMasterFilter && this.pendingOnlineMasterFilter !== 'all') activeFilterCount++;
+        if (this.pendingOnlineSortBy && this.pendingOnlineSortBy !== 'date_asc') activeFilterCount++;
 
         const totalPendingAmount = filtered.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
         const allClients = this.getClientsData();
+        const staffList = this.getStaffList ? this.getStaffList() : [];
 
         const pageSize = this.pendingOnlinePageSize || 10;
         const totalPages = Math.ceil(filtered.length / pageSize) || 1;
@@ -7732,29 +7944,118 @@ const BusinessDashboardView = {
                     </div>
                 </div>
 
-                <!-- Tabs & Search Bar -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <!-- Segmented Tabs -->
-                    <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/60 shadow-2xs text-xs font-semibold overflow-x-auto">
-                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('all')" class="px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'all' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                <!-- 1. SUB-TABS (Segmented Control) -->
+                <div class="overflow-x-auto pb-0.5">
+                    <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/60 shadow-2xs text-xs font-semibold">
+                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('all')" class="px-3.5 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'all' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
                             Bütün müraciətlər (${onlineList.length})
                         </button>
-                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('all_pending')" class="px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'all_pending' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('all_pending')" class="px-3.5 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'all_pending' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
                             Təsdiq gözləyənlər (${pendingCount})
                         </button>
-                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('today')" class="px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'today' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('today')" class="px-3.5 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'today' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
                             Bugünkü (${todayPendingCount})
                         </button>
-                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('confirmed')" class="px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'confirmed' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                        <button type="button" onclick="BusinessDashboardView.setPendingOnlineTab('confirmed')" class="px-3.5 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${this.pendingOnlineTab === 'confirmed' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
                             Təsdiqlənmişlər (${confirmedOnlineCount})
                         </button>
                     </div>
+                </div>
 
-                    <!-- Search Input -->
-                    <div class="relative min-w-[240px]">
-                        <input type="text" placeholder="Müştəri, nömrə və ya xidmət üzrə axtarış..." value="${this.pendingOnlineSearchQuery || ''}" oninput="BusinessDashboardView.pendingOnlineSearchQuery = this.value; BusinessDashboardView.pendingOnlinePage = 1; BusinessDashboardView.refreshCalendar();" class="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-amber-400 transition" />
-                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <!-- 2. SEARCH & FILTERS BAR (Standard across all modules) -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <!-- Search Input -->
+                        <div class="relative flex-1 min-w-0">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            </span>
+                            <input type="text"
+                                   id="pendingOnlineSearchInput"
+                                   placeholder="Müştəri adı, telefon, xidmət və ya usta üzrə axtarış..."
+                                   value="${this.escapeHtml(this.pendingOnlineSearchQuery || '')}"
+                                   oninput="BusinessDashboardView.setPendingOnlineSearch(this.value)"
+                                   class="w-full h-11 pl-10 pr-9 rounded-2xl bg-white border border-slate-200/80 text-slate-900 placeholder:text-slate-400 text-xs font-medium outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition shadow-2xs" />
+                            ${this.pendingOnlineSearchQuery ? `
+                                <button type="button"
+                                        onclick="BusinessDashboardView.clearPendingOnlineSearch()"
+                                        class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                                        title="Təmizlə">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <!-- Filter Button -->
+                        <button type="button"
+                                onclick="BusinessDashboardView.openPendingOnlineFilterModal()"
+                                class="h-11 px-4 rounded-2xl bg-white border ${activeFilterCount > 0 ? 'border-slate-900 ring-2 ring-amber-400/40 bg-amber-50/20' : 'border-slate-200/80 hover:border-slate-300'} text-slate-700 text-xs font-semibold transition flex items-center gap-2 shadow-2xs cursor-pointer shrink-0"
+                                title="Filtrlər pəncərəsi">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                            <span class="hidden sm:inline">Filtrlər</span>
+                            ${activeFilterCount > 0 ? `
+                                <span class="w-5 h-5 rounded-full bg-[#101114] text-white text-[10px] font-bold flex items-center justify-center -mr-1">
+                                    ${activeFilterCount}
+                                </span>
+                            ` : ''}
+                        </button>
                     </div>
+
+                    <!-- Active Filter Chips / Pills -->
+                    ${(activeFilterCount > 0 || this.pendingOnlineSearchQuery) ? `
+                        <div class="flex items-center gap-2 flex-wrap pt-0.5 text-xs">
+                            <span class="text-[11px] font-medium text-slate-400">Aktiv:</span>
+
+                            ${this.pendingOnlineSearchQuery ? `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-medium text-[11px]">
+                                    <span>Axtarış: "${this.escapeHtml(this.pendingOnlineSearchQuery)}"</span>
+                                    <button type="button" onclick="BusinessDashboardView.clearPendingOnlineSearch()" class="text-slate-400 hover:text-rose-600 transition cursor-pointer flex items-center" title="Sil">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            ` : ''}
+
+                            ${this.pendingOnlineStatusFilter !== 'all' ? `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 text-amber-900 border border-amber-200/70 font-semibold text-[11px]">
+                                    <span>Status: ${this.pendingOnlineStatusFilter}</span>
+                                    <button type="button" onclick="BusinessDashboardView.clearPendingOnlineFilter('status')" class="text-amber-500 hover:text-rose-600 transition cursor-pointer flex items-center" title="Sil">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            ` : ''}
+
+                            ${this.pendingOnlineDateFilter !== 'all' ? `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-[11px]">
+                                    <span>Tarix: ${this.pendingOnlineDateFilter === 'today' ? 'Bugünkü' : (this.pendingOnlineDateFilter === 'tomorrow' ? 'Sabahkı' : 'Bu həftə')}</span>
+                                    <button type="button" onclick="BusinessDashboardView.clearPendingOnlineFilter('date')" class="text-slate-400 hover:text-rose-600 transition cursor-pointer flex items-center" title="Sil">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            ` : ''}
+
+                            ${this.pendingOnlineMasterFilter !== 'all' ? `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-[11px]">
+                                    <span>Usta: ${this.escapeHtml(this.pendingOnlineMasterFilter)}</span>
+                                    <button type="button" onclick="BusinessDashboardView.clearPendingOnlineFilter('master')" class="text-slate-400 hover:text-rose-600 transition cursor-pointer flex items-center" title="Sil">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            ` : ''}
+
+                            ${this.pendingOnlineSortBy !== 'date_asc' ? `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-[11px]">
+                                    <span>Sıralama: ${this.pendingOnlineSortBy === 'date_desc' ? 'Ən son' : (this.pendingOnlineSortBy === 'price_desc' ? 'Yüksək qiymət' : (this.pendingOnlineSortBy === 'price_asc' ? 'Aşağı qiymət' : 'Ad A-Z'))}</span>
+                                    <button type="button" onclick="BusinessDashboardView.clearPendingOnlineFilter('sort')" class="text-slate-400 hover:text-rose-600 transition cursor-pointer flex items-center" title="Sil">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            ` : ''}
+
+                            <button type="button" onclick="BusinessDashboardView.resetAllPendingOnlineFilters()" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer ml-1">
+                                Filtrləri sıfırla
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
 
                 <!-- Table List View -->
@@ -7764,7 +8065,12 @@ const BusinessDashboardView = {
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         </div>
                         <h4 class="font-bold text-sm text-slate-800">Müraciət tapılmadı</h4>
-                        <p class="text-xs text-slate-500 mt-1">Seçilmiş filtr üzrə heç bir onlayn qəbul müraciəti mövcud deyil.</p>
+                        <p class="text-xs text-slate-500 mt-1">Seçilmiş filtrlərə və ya axtarışa uyğun heç bir onlayn qəbul müraciəti tapılmadı.</p>
+                        ${(activeFilterCount > 0 || this.pendingOnlineSearchQuery) ? `
+                            <button type="button" onclick="BusinessDashboardView.resetAllPendingOnlineFilters()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer">
+                                Filtrləri sıfırla
+                            </button>
+                        ` : ''}
                     </div>
                 ` : `
                     <div class="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
@@ -7914,6 +8220,115 @@ const BusinessDashboardView = {
                         itemName: 'müraciət'
                     })}
                 `}
+
+                <!-- ==========================================
+                     MODAL: ONLINE BOOKINGS FILTER MODAL
+                =========================================== -->
+                <div id="bizPendingOnlineFilterModal" onclick="if(event.target === this) BusinessDashboardView.closePendingOnlineFilterModal()" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs modal-fade">
+                    <div class="bg-white border-t sm:border border-slate-200 rounded-t-[28px] sm:rounded-[28px] max-w-md w-full p-5 sm:p-7 shadow-2xl space-y-4 text-slate-800 max-h-[92vh] overflow-y-auto">
+                        <div class="sm:hidden w-10 h-1 bg-slate-200 rounded-full mx-auto -mt-1 mb-2.5 shrink-0"></div>
+                        
+                        <!-- Clean Modal Header (GEMINI.md Rule 5: NO ICONS in modal headers) -->
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="font-semibold text-base text-slate-900">Müraciət filtrləri</h3>
+                                <p class="text-xs text-slate-400 font-normal">Status, tarix, mütəxəssis və sıralama meyarları</p>
+                            </div>
+                            <button type="button" onclick="BusinessDashboardView.closePendingOnlineFilterModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-black flex items-center justify-center transition cursor-pointer" title="Bağla">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Filter Body -->
+                        <div class="space-y-4 text-xs font-normal">
+                            <!-- 1. Status Filter -->
+                            <div class="space-y-2">
+                                <label class="block text-slate-700 font-medium">Müraciət statusu</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" id="poFilterStatusBtn_all" onclick="BusinessDashboardView.selectPendingOnlineFilterStatus('all')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold">Bütün statuslar</span>
+                                    </button>
+                                    <button type="button" id="poFilterStatusBtn_Gözlənilir" onclick="BusinessDashboardView.selectPendingOnlineFilterStatus('Gözlənilir')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold text-amber-700">Təsdiq gözləyir</span>
+                                    </button>
+                                    <button type="button" id="poFilterStatusBtn_Təsdiqləndi" onclick="BusinessDashboardView.selectPendingOnlineFilterStatus('Təsdiqləndi')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold text-emerald-700">Təsdiqlənib</span>
+                                    </button>
+                                    <button type="button" id="poFilterStatusBtn_Ləğv edildi" onclick="BusinessDashboardView.selectPendingOnlineFilterStatus('Ləğv edildi')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold text-rose-700">İmtina edilib</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 2. Tarix / Dövr Filter -->
+                            <div class="space-y-2">
+                                <label class="block text-slate-700 font-medium">Tarix və dövr</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" id="poFilterDateBtn_all" onclick="BusinessDashboardView.selectPendingOnlineFilterDate('all')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold">Bütün tarixlər</span>
+                                    </button>
+                                    <button type="button" id="poFilterDateBtn_today" onclick="BusinessDashboardView.selectPendingOnlineFilterDate('today')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold">Bugünkü</span>
+                                    </button>
+                                    <button type="button" id="poFilterDateBtn_tomorrow" onclick="BusinessDashboardView.selectPendingOnlineFilterDate('tomorrow')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold">Sabahkı</span>
+                                    </button>
+                                    <button type="button" id="poFilterDateBtn_this_week" onclick="BusinessDashboardView.selectPendingOnlineFilterDate('this_week')" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1 transition text-center cursor-pointer font-medium">
+                                        <span class="text-[11px] font-semibold">Bu həftə</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 3. Mütəxəssis (Usta) -->
+                            <div class="space-y-1.5">
+                                <label class="block text-slate-700 font-medium">Təyin olunan mütəxəssis</label>
+                                <div class="relative">
+                                    <select id="poFilterMasterSelect" class="w-full h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 outline-none appearance-none cursor-pointer focus:border-slate-900 focus:bg-white transition">
+                                        <option value="all">Bütün mütəxəssislər</option>
+                                        ${staffList.map(st => `
+                                            <option value="${this.escapeHtml(st.name)}" ${this.pendingOnlineMasterFilter === st.name ? 'selected' : ''}>${this.escapeHtml(st.name)} (${this.escapeHtml(st.role || 'Usta')})</option>
+                                        `).join('')}
+                                    </select>
+                                    <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                                </div>
+                            </div>
+
+                            <!-- 4. Sıralama -->
+                            <div class="space-y-2">
+                                <label class="block text-slate-700 font-medium">Sıralama qaydası</label>
+                                <div class="space-y-1.5">
+                                    <button type="button" id="poFilterSortBtn_date_asc" onclick="BusinessDashboardView.selectPendingOnlineFilterSort('date_asc')" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex items-center justify-between text-left transition cursor-pointer font-medium">
+                                        <span>Tarix və vaxt (ən tez birinci)</span>
+                                    </button>
+                                    <button type="button" id="poFilterSortBtn_date_desc" onclick="BusinessDashboardView.selectPendingOnlineFilterSort('date_desc')" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex items-center justify-between text-left transition cursor-pointer font-medium">
+                                        <span>Tarix və vaxt (ən son birinci)</span>
+                                    </button>
+                                    <button type="button" id="poFilterSortBtn_price_desc" onclick="BusinessDashboardView.selectPendingOnlineFilterSort('price_desc')" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex items-center justify-between text-left transition cursor-pointer font-medium">
+                                        <span>Məbləğ (yüksəkdən aşağıya)</span>
+                                    </button>
+                                    <button type="button" id="poFilterSortBtn_name_asc" onclick="BusinessDashboardView.selectPendingOnlineFilterSort('name_asc')" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 flex items-center justify-between text-left transition cursor-pointer font-medium">
+                                        <span>Müştəri adı (A-Z)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Actions Footer -->
+                        <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                            <button type="button" onclick="BusinessDashboardView.resetPendingOnlineModalFilters()" class="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 text-xs font-semibold transition cursor-pointer">
+                                Sıfırla
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="BusinessDashboardView.closePendingOnlineFilterModal()" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer">
+                                    Bağla
+                                </button>
+                                <button type="button" onclick="BusinessDashboardView.applyPendingOnlineFilterModal()" class="px-5 py-2 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] text-xs font-bold transition shadow-2xs cursor-pointer">
+                                    Tətbiq et
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     },
