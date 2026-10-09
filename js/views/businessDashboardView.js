@@ -2720,18 +2720,18 @@ const BusinessDashboardView = {
 
                             <!-- TAB 5: MATERİALLAR (CONSUMABLES & TECH MAP) -->
                             <div id="srvPane_materials" class="hidden space-y-4">
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between gap-3">
                                     <div>
                                         <div class="flex items-center gap-2">
                                             <h4 class="font-bold text-xs text-slate-900">Baza Texnoloji Xəritəsi</h4>
                                             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200/60">Ümumi standart</span>
                                         </div>
-                                        <p id="srvFormMaterialsSubhead" class="text-[11px] text-slate-400 font-normal">Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda bu texnoloji kart tətbiq olunur.</p>
+                                        <p id="srvFormMaterialsSubhead" class="text-[11px] text-slate-400 font-normal">Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda tətbiq olunur.</p>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="h-8 px-3 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95">
+                                    <div id="srvFormMaterialHeaderActions" class="flex items-center gap-2">
+                                        <button type="button" id="srvFormMaterialHeaderPickerBtn" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="h-8 px-3 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 hidden">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                                            <span id="srvFormMaterialPickerBtnLabel">Texnoloji kart seç</span>
+                                            <span id="srvFormMaterialPickerBtnLabel">Kartı dəyiş</span>
                                         </button>
                                         <button type="button" id="srvFormMaterialClearBtn" onclick="BusinessDashboardView.clearAllServiceMaterials()" class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 font-medium text-xs transition hidden cursor-pointer" title="Texnoloji kartı təmizlə">
                                             Təmizlə
@@ -2739,38 +2739,13 @@ const BusinessDashboardView = {
                                     </div>
                                 </div>
 
-                                <!-- Tech Card Selector -->
-                                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-2">
-                                    <label class="block text-slate-700 font-semibold text-xs">Texnoloji kart:</label>
-                                    <div class="relative">
-                                        <select id="srvFormTechCardSelect" onchange="BusinessDashboardView.onSelectServiceTechCard(this.value)" class="w-full h-10 px-3 pr-8 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold outline-none focus:border-slate-900 transition cursor-pointer">
-                                            <!-- Populated dynamically -->
-                                        </select>
-                                    </div>
-                                    <div id="srvFormTechCardNotes" class="hidden text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-200/60 leading-relaxed">
-                                        <!-- Notes -->
-                                    </div>
-                                </div>
-
-                                <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-[11px] text-slate-700 space-y-1.5">
-                                    <div class="flex items-center gap-1.5 font-bold text-amber-900">
-                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                                        <span>Materialların tətbiq və silinmə iyerarxiyası:</span>
-                                    </div>
-                                    <div class="pl-5 text-slate-600 space-y-0.5 text-[11px] leading-relaxed">
-                                        <div>• <b>Ustanın fərdi texnoloji xəritəsi yoxdursa:</b> Materiallar bu baza texnoloji kartından avtomatik silinir.</div>
-                                        <div>• <b>Ustanın fərdi xəritəsi varsa («Ustalar» bölməsində):</b> Həmin ustanın öz fərdi xəritəsi üstünlük təşkil edir.</div>
-                                        <div>• <b>Usta təyin olunmayıbsa və ya sonradan jurnalda seçilərsə:</b> Bu baza texnoloji kartı tətbiq olunur.</div>
-                                    </div>
-                                </div>
-
-                                <!-- Attached Materials List -->
-                                <div id="srvFormMaterialList" class="space-y-2">
+                                <!-- Attached Materials List or Clean Minimal Empty State -->
+                                <div id="srvFormMaterialList" class="space-y-3">
                                     <!-- Rendered dynamically -->
                                 </div>
 
                                 <!-- Cost Summary -->
-                                <div id="srvFormMaterialCostSummary" class="p-3 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-800">
+                                <div id="srvFormMaterialCostSummary" class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between text-xs font-semibold text-slate-800 hidden">
                                     <span>Materialların cəmi maya dəyəri:</span>
                                     <span id="srvFormMaterialCostTotal" class="font-bold text-slate-900 font-mono">0.00 ₼</span>
                                 </div>
@@ -27781,48 +27756,31 @@ const BusinessDashboardView = {
         const container = document.getElementById('srvFormMaterialList');
         const costEl = document.getElementById('srvFormMaterialCostTotal');
         const subhead = document.getElementById('srvFormMaterialsSubhead');
+        const headerPickerBtn = document.getElementById('srvFormMaterialHeaderPickerBtn');
         const clearBtn = document.getElementById('srvFormMaterialClearBtn');
         const costSummary = document.getElementById('srvFormMaterialCostSummary');
         const pickerBtnLabel = document.getElementById('srvFormMaterialPickerBtnLabel');
-        const notesBox = document.getElementById('srvFormTechCardNotes');
-        const select = document.getElementById('srvFormTechCardSelect');
         if (!container) return;
-
-        if (select && this.selectedServiceTechCardId) {
-            select.value = this.selectedServiceTechCardId;
-        }
 
         const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
         const activeTc = techCards.find(c => c.id === this.selectedServiceTechCardId);
 
-        if (notesBox) {
-            if (activeTc && activeTc.notes) {
-                notesBox.innerHTML = `<b>Təsvir:</b> ${this.escapeHtml(activeTc.notes)}`;
-                notesBox.classList.remove('hidden');
-            } else {
-                notesBox.innerHTML = '';
-                notesBox.classList.add('hidden');
-            }
-        }
-
-        if (pickerBtnLabel) {
-            pickerBtnLabel.textContent = this.selectedServiceTechCardId ? 'Kartı dəyiş' : 'Texnoloji kart seç';
-        }
-
         let totalCost = 0;
         if (!this.selectedServiceMaterials || this.selectedServiceMaterials.length === 0) {
+            if (headerPickerBtn) headerPickerBtn.classList.add('hidden');
             if (clearBtn) clearBtn.classList.add('hidden');
-            if (subhead) subhead.textContent = 'Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda bu texnoloji kart tətbiq olunur.';
             if (costSummary) costSummary.classList.add('hidden');
+            if (subhead) subhead.textContent = 'Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda tətbiq olunur.';
+
             container.innerHTML = `
-                <div class="py-8 px-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center flex flex-col items-center justify-center">
-                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 flex items-center justify-center mb-2 shadow-2xs">
+                <div class="py-10 px-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center flex flex-col items-center justify-center">
+                    <div class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-400 flex items-center justify-center mb-2.5 shadow-2xs">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </div>
-                    <div class="text-xs font-bold text-slate-700">Baza texnoloji kartı təyin edilməyib</div>
+                    <div class="text-xs font-bold text-slate-800">Baza texnoloji kartı təyin edilməyib</div>
                     <p class="text-[11px] text-slate-400 mt-0.5 max-w-xs">Xidmət üçün standart sərfiyyat normasını texnoloji kartlar siyahısından seçin.</p>
-                    <button type="button" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <button type="button" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="mt-3.5 px-4 py-2 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-slate-900 font-bold text-xs transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                         <span>Texnoloji kart seç</span>
                     </button>
                 </div>
@@ -27831,23 +27789,59 @@ const BusinessDashboardView = {
             return;
         }
 
+        if (headerPickerBtn) {
+            headerPickerBtn.classList.remove('hidden');
+            if (pickerBtnLabel) pickerBtnLabel.textContent = 'Kartı dəyiş';
+        }
         if (clearBtn) clearBtn.classList.remove('hidden');
-        const cardTitle = this.selectedServiceTechCardName ? `«${this.selectedServiceTechCardName}»` : 'Standart kart';
-        if (subhead) subhead.textContent = `${cardTitle} üzrə ${this.selectedServiceMaterials.length} növ material təyin edilib`;
         if (costSummary) costSummary.classList.remove('hidden');
 
+        const cardTitle = this.selectedServiceTechCardName || (activeTc ? activeTc.name : 'Standart kart');
+        if (subhead) subhead.textContent = `«${cardTitle}» üzrə ${this.selectedServiceMaterials.length} material təyin edilib`;
+
+        this.selectedServiceMaterials.forEach(mat => {
+            const costPrice = parseFloat(mat.costPrice) || 0;
+            const qty = parseFloat(mat.qty) || 1;
+            totalCost += (costPrice * qty);
+        });
+
         container.innerHTML = `
+            <!-- Selected Tech Card Banner -->
+            <div class="p-3.5 rounded-2xl border-2 border-amber-400 bg-amber-50/30 shadow-xs flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-xl border border-amber-500 bg-[#FFDD2D] text-slate-900 flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="font-bold text-xs text-slate-900 truncate">«${this.escapeHtml(cardTitle)}»</div>
+                        <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                            <span>${this.selectedServiceMaterials.length} material</span>
+                            <span>•</span>
+                            <span>Maya dəyəri: <b class="text-slate-900 font-mono">${totalCost.toFixed(2)} ₼</b></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer">
+                        Dəyiş
+                    </button>
+                    <button type="button" onclick="BusinessDashboardView.clearAllServiceMaterials()" class="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 text-slate-400 transition shadow-2xs cursor-pointer" title="Kartı təmizlə">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Materials Items List -->
             <div class="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
                 ${this.selectedServiceMaterials.map((mat, idx) => {
                     const costPrice = parseFloat(mat.costPrice) || 0;
                     const qty = parseFloat(mat.qty) || 1;
                     const lineCost = (costPrice * qty);
-                    totalCost += lineCost;
 
                     return `
                         <div class="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition">
                             <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                <div class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0">
+                                <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                 </div>
                                 <div class="min-w-0 text-left">
