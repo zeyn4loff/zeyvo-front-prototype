@@ -2967,26 +2967,30 @@ const BusinessDashboardView = {
                             </label>
                         </div>
 
-                        <!-- Custom Materials Section -->
+                        <!-- Custom Materials Section (Tech Card Selection) -->
                         <div id="staffMatCustomSection" class="hidden space-y-3">
-                            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-                                <label class="block text-slate-700 font-medium">Anbardan fərdi material əlavə et</label>
-                                <div class="flex items-center gap-2">
-                                    <select id="staffMatProductSelect" class="flex-1 min-w-0 h-9 px-3 rounded-xl bg-white border border-slate-200 text-slate-900 outline-none focus:border-slate-900 text-xs truncate">
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                                <label class="block text-slate-700 font-semibold text-xs">Texnoloji kartı seçin</label>
+                                <div class="relative">
+                                    <select id="staffMatTechCardSelect" onchange="BusinessDashboardView.onSelectStaffTechCard(this.value)" class="w-full h-10 pl-3.5 pr-8 rounded-xl bg-white border border-slate-200 text-slate-900 outline-none focus:border-slate-900 text-xs appearance-none cursor-pointer transition shadow-2xs font-medium">
                                     </select>
-                                    <input type="number" id="staffMatQty" min="0.01" step="0.1" value="1" placeholder="Say" class="w-16 h-9 px-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-center font-bold text-xs outline-none focus:border-slate-900 shrink-0">
-                                    <button type="button" onclick="BusinessDashboardView.addStaffCustomMaterial()" class="px-3.5 h-9 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs transition shrink-0 cursor-pointer shadow-xs active:scale-95">
-                                        + Əlavə et
-                                    </button>
+                                    <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                                </div>
+                                <p id="staffMatTechCardNotes" class="text-[11px] text-slate-500 font-normal italic"></p>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between px-1">
+                                    <span class="text-slate-700 font-semibold text-xs">Kart üzrə material sərfiyyatı:</span>
+                                    <span id="staffMatIngredientsCount" class="text-[11px] text-slate-400"></span>
+                                </div>
+                                <div id="staffMatList" class="space-y-1.5 max-h-52 overflow-y-auto pr-0.5">
                                 </div>
                             </div>
 
-                            <div id="staffMatList" class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
-                            </div>
-
-                            <div class="p-2.5 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-800">
+                            <div class="p-3 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-800">
                                 <span>Bu usta üçün cəmi maya dəyəri:</span>
-                                <span id="staffMatTotalCost" class="font-bold text-slate-900">0.00 ₼</span>
+                                <span id="staffMatTotalCost" class="font-bold text-slate-900 font-mono text-sm">0.00 ₼</span>
                             </div>
                         </div>
 
@@ -26876,7 +26880,7 @@ const BusinessDashboardView = {
 
         if (avatarEl) avatarEl.src = st.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100';
         if (titleEl) titleEl.textContent = `${st.name} — Fərdi texnoloji xəritə`;
-        if (subEl) subEl.textContent = `${st.role || 'Mütəxəssis'} üçün xüsusi material sərfiyyat norması`;
+        if (subEl) subEl.textContent = `${st.role || 'Mütəxəssis'} üçün xüsusi texnoloji kart sərfiyyatı`;
         if (hiddenStaffId) hiddenStaffId.value = staffId;
 
         if (!this.serviceStaffOverrides) this.serviceStaffOverrides = {};
@@ -26885,13 +26889,35 @@ const BusinessDashboardView = {
         const useCustom = !!override.useCustomMaterials;
         if (switchEl) switchEl.checked = useCustom;
 
+        this.selectedStaffTechCardId = override.techCardId || null;
+
         if (Array.isArray(override.materials) && override.materials.length > 0) {
             this.tempStaffMaterials = JSON.parse(JSON.stringify(override.materials));
+        } else if (this.selectedStaffTechCardId) {
+            const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+            const tc = techCards.find(c => c.id === this.selectedStaffTechCardId);
+            if (tc && tc.ingredients) {
+                this.tempStaffMaterials = tc.ingredients.map(ing => ({
+                    productId: ing.productId,
+                    name: ing.productName || ing.name,
+                    unit: ing.unit || 'ədəd',
+                    costPrice: parseFloat(ing.costPerUnit || ing.costPrice || 0),
+                    qty: parseFloat(ing.qty || 1)
+                }));
+            } else {
+                this.tempStaffMaterials = [];
+            }
         } else {
-            this.tempStaffMaterials = Array.isArray(this.selectedServiceMaterials) ? JSON.parse(JSON.stringify(this.selectedServiceMaterials)) : [];
+            this.tempStaffMaterials = [];
         }
 
-        this.populateStaffMaterialsProductSelect();
+        this.populateStaffTechCardsSelect(this.selectedStaffTechCardId);
+        const notesEl = document.getElementById('staffMatTechCardNotes');
+        if (notesEl) {
+            const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+            const tc = techCards.find(c => c.id === this.selectedStaffTechCardId);
+            notesEl.textContent = tc && tc.notes ? `Qeyd: ${tc.notes}` : '';
+        }
         this.renderStaffMaterialsList();
         this.toggleStaffCustomMaterialsMode();
 
@@ -26902,6 +26928,7 @@ const BusinessDashboardView = {
         const modal = document.getElementById('bizStaffMaterialsModal');
         if (modal) modal.classList.add('hidden');
         this.activeStaffMaterialId = null;
+        this.selectedStaffTechCardId = null;
         this.tempStaffMaterials = [];
     },
 
@@ -26921,50 +26948,86 @@ const BusinessDashboardView = {
         }
     },
 
-    populateStaffMaterialsProductSelect: function() {
-        const select = document.getElementById('staffMatProductSelect');
+    populateStaffTechCardsSelect: function(selectedTechCardId) {
+        const select = document.getElementById('staffMatTechCardSelect');
         if (!select) return;
-        const products = (this.getProducts ? this.getProducts() : []);
-        if (products.length === 0) {
-            select.innerHTML = '<option value="">Anbarda məhsul tapılmadı</option>';
+        const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+        if (techCards.length === 0) {
+            select.innerHTML = '<option value="">Heç bir texnoloji kart tapılmadı</option>';
             return;
         }
-        select.innerHTML = products.map(p => {
-            const cost = parseFloat(p.costPrice || p.price || 0).toFixed(2);
-            return `<option value="${p.id}" data-cost="${cost}" data-unit="${p.unit || 'ədəd'}">${p.name} (${cost} ₼ / ${p.unit || 'ədəd'})</option>`;
-        }).join('');
+        select.innerHTML = `
+            <option value="">-- Texnoloji kartı seçin --</option>
+            ${techCards.map(tc => {
+                const cost = parseFloat(tc.totalCost || 0).toFixed(2);
+                const ingCount = Array.isArray(tc.ingredients) ? tc.ingredients.length : 0;
+                return `<option value="${tc.id}" ${tc.id === selectedTechCardId ? 'selected' : ''}>${tc.name} (${cost} ₼ • ${ingCount} material)</option>`;
+            }).join('')}
+        `;
+    },
+
+    onSelectStaffTechCard: function(techCardId) {
+        this.selectedStaffTechCardId = techCardId || null;
+        const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+        const tc = techCards.find(c => c.id === techCardId);
+        const notesEl = document.getElementById('staffMatTechCardNotes');
+
+        if (!tc) {
+            this.tempStaffMaterials = [];
+            if (notesEl) notesEl.textContent = 'Kart seçilmədikdə xidmətin ümumi materialları tətbiq olunacaq.';
+            this.renderStaffMaterialsList();
+            return;
+        }
+
+        if (notesEl) {
+            notesEl.textContent = tc.notes ? `Qeyd: ${tc.notes}` : (tc.serviceName ? `Xidmət: ${tc.serviceName}` : '');
+        }
+
+        this.tempStaffMaterials = (tc.ingredients || []).map(ing => ({
+            productId: ing.productId,
+            name: ing.productName || ing.name,
+            unit: ing.unit || 'ədəd',
+            costPrice: parseFloat(ing.costPerUnit || ing.costPrice || 0),
+            qty: parseFloat(ing.qty || 1)
+        }));
+
+        this.renderStaffMaterialsList();
     },
 
     renderStaffMaterialsList: function() {
         const container = document.getElementById('staffMatList');
         const totalEl = document.getElementById('staffMatTotalCost');
+        const countEl = document.getElementById('staffMatIngredientsCount');
         if (!container) return;
 
         let totalCost = 0;
         if (!this.tempStaffMaterials || this.tempStaffMaterials.length === 0) {
             container.innerHTML = `
                 <div class="py-4 text-center text-slate-400 text-xs">
-                    Bu usta üçün hələ heç bir fərdi material əlavə edilməyib.
+                    Zəhmət olmasa yuxarıdakı siyahıdan texnoloji kart seçin.
                 </div>
             `;
             if (totalEl) totalEl.textContent = '0.00 ₼';
+            if (countEl) countEl.textContent = '0 material';
             return;
         }
+
+        if (countEl) countEl.textContent = `${this.tempStaffMaterials.length} növ material`;
 
         container.innerHTML = this.tempStaffMaterials.map((mat, idx) => {
             const lineCost = (parseFloat(mat.costPrice || 0) * parseFloat(mat.qty || 0));
             totalCost += lineCost;
             return `
-                <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-3 text-xs">
+                <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-3 text-xs shadow-2xs">
                     <div class="min-w-0 flex-1">
-                        <div class="font-bold text-slate-900 truncate">${mat.name}</div>
-                        <div class="text-[11px] text-slate-400">${parseFloat(mat.costPrice || 0).toFixed(2)} ₼ / ${mat.unit || 'ədəd'}</div>
+                        <div class="font-bold text-slate-900 truncate">${this.escapeHtml(mat.name || '')}</div>
+                        <div class="text-[11px] text-slate-400 font-mono">${parseFloat(mat.costPrice || 0).toFixed(2)} ₼ / ${this.escapeHtml(mat.unit || 'ədəd')}</div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="number" min="0.01" step="0.1" value="${mat.qty}" onchange="BusinessDashboardView.updateStaffCustomMaterialQty(${idx}, this.value)" class="w-16 h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-center font-bold text-xs outline-none focus:border-slate-900">
-                        <span class="text-slate-500 text-[11px] font-medium shrink-0">${mat.unit || 'ədəd'}</span>
-                        <div class="w-16 text-right font-bold text-slate-900 text-xs">${lineCost.toFixed(2)} ₼</div>
-                        <button type="button" onclick="BusinessDashboardView.removeStaffCustomMaterial(${idx})" class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition cursor-pointer">
+                        <input type="number" min="0.01" step="0.1" value="${mat.qty}" onchange="BusinessDashboardView.updateStaffCustomMaterialQty(${idx}, this.value)" class="w-16 h-8 px-2 rounded-lg bg-slate-50 border border-slate-200 text-center font-bold text-xs outline-none focus:border-slate-900 transition">
+                        <span class="text-slate-500 text-[11px] font-medium shrink-0">${this.escapeHtml(mat.unit || 'ədəd')}</span>
+                        <div class="w-16 text-right font-bold text-slate-900 text-xs font-mono">${lineCost.toFixed(2)} ₼</div>
+                        <button type="button" onclick="BusinessDashboardView.removeStaffCustomMaterial(${idx})" class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition cursor-pointer" title="Sil">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
                         </button>
                     </div>
@@ -26973,34 +27036,6 @@ const BusinessDashboardView = {
         }).join('');
 
         if (totalEl) totalEl.textContent = `${totalCost.toFixed(2)} ₼`;
-    },
-
-    addStaffCustomMaterial: function() {
-        const select = document.getElementById('staffMatProductSelect');
-        const qtyInput = document.getElementById('staffMatQty');
-        if (!select || !select.value) return;
-
-        const prodId = select.value;
-        const qty = parseFloat(qtyInput ? qtyInput.value : 1) || 1;
-        const products = (this.getProducts ? this.getProducts() : []);
-        const prod = products.find(p => p.id === prodId);
-        if (!prod) return;
-
-        if (!Array.isArray(this.tempStaffMaterials)) this.tempStaffMaterials = [];
-        const existing = this.tempStaffMaterials.find(m => m.productId === prodId);
-        if (existing) {
-            existing.qty += qty;
-        } else {
-            this.tempStaffMaterials.push({
-                productId: prod.id,
-                name: prod.name,
-                unit: prod.unit || 'ədəd',
-                costPrice: parseFloat(prod.costPrice || prod.price || 0),
-                qty: qty
-            });
-        }
-        this.renderStaffMaterialsList();
-        if (qtyInput) qtyInput.value = '1';
     },
 
     removeStaffCustomMaterial: function(index) {
@@ -27029,7 +27064,13 @@ const BusinessDashboardView = {
 
         if (!this.serviceStaffOverrides) this.serviceStaffOverrides = {};
         if (!this.serviceStaffOverrides[staffId]) this.serviceStaffOverrides[staffId] = {};
+        
+        const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+        const tc = techCards.find(c => c.id === this.selectedStaffTechCardId);
+
         this.serviceStaffOverrides[staffId].useCustomMaterials = useCustom;
+        this.serviceStaffOverrides[staffId].techCardId = useCustom && tc ? tc.id : null;
+        this.serviceStaffOverrides[staffId].techCardName = useCustom && tc ? tc.name : null;
         this.serviceStaffOverrides[staffId].materials = useCustom ? [...(this.tempStaffMaterials || [])] : [];
 
         this.closeStaffMaterialsModal();
@@ -27184,9 +27225,10 @@ const BusinessDashboardView = {
                             <div class="sm:col-span-3 flex items-center justify-between sm:justify-center gap-2">
                                 <span class="sm:hidden text-[11px] text-slate-500 font-medium">Xəritə:</span>
                                 <button type="button" onclick="BusinessDashboardView.openStaffMaterialsModal('${st.id}')" 
-                                    class="h-8 px-2.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto shadow-2xs ${useCustomMaterials ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300 hover:text-slate-900'}">
+                                    class="h-8 px-2.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto shadow-2xs ${useCustomMaterials ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300 hover:text-slate-900'}"
+                                    title="${useCustomMaterials ? (override.techCardName || 'Fərdi texnoloji xəritə') : 'Standart xidmət xəritəsi'}">
                                     <svg class="w-3.5 h-3.5 ${useCustomMaterials ? 'text-amber-700' : 'text-slate-400'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                                    <span class="truncate">${useCustomMaterials ? `Fərdi (${matCount})` : 'Standart xəritə'}</span>
+                                    <span class="truncate max-w-[130px]">${useCustomMaterials ? (override.techCardName || `Fərdi (${matCount})`) : 'Standart xəritə'}</span>
                                 </button>
                             </div>
 
