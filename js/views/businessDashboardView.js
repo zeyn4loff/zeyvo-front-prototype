@@ -2726,16 +2726,29 @@ const BusinessDashboardView = {
                                             <h4 class="font-bold text-xs text-slate-900">Baza Texnoloji Xəritəsi</h4>
                                             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200/60">Ümumi standart</span>
                                         </div>
-                                        <p id="srvFormMaterialsSubhead" class="text-[11px] text-slate-400 font-normal">Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda bu siyahı tətbiq olunur.</p>
+                                        <p id="srvFormMaterialsSubhead" class="text-[11px] text-slate-400 font-normal">Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda bu texnoloji kart tətbiq olunur.</p>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="h-8 px-3 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                            <span>Material seç</span>
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                            <span id="srvFormMaterialPickerBtnLabel">Texnoloji kart seç</span>
                                         </button>
-                                        <button type="button" id="srvFormMaterialClearBtn" onclick="BusinessDashboardView.clearAllServiceMaterials()" class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 font-medium text-xs transition hidden cursor-pointer" title="Bütün materialları sil">
+                                        <button type="button" id="srvFormMaterialClearBtn" onclick="BusinessDashboardView.clearAllServiceMaterials()" class="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 font-medium text-xs transition hidden cursor-pointer" title="Texnoloji kartı təmizlə">
                                             Təmizlə
                                         </button>
+                                    </div>
+                                </div>
+
+                                <!-- Tech Card Selector -->
+                                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-2">
+                                    <label class="block text-slate-700 font-semibold text-xs">Texnoloji kart:</label>
+                                    <div class="relative">
+                                        <select id="srvFormTechCardSelect" onchange="BusinessDashboardView.onSelectServiceTechCard(this.value)" class="w-full h-10 px-3 pr-8 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold outline-none focus:border-slate-900 transition cursor-pointer">
+                                            <!-- Populated dynamically -->
+                                        </select>
+                                    </div>
+                                    <div id="srvFormTechCardNotes" class="hidden text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-200/60 leading-relaxed">
+                                        <!-- Notes -->
                                     </div>
                                 </div>
 
@@ -2745,9 +2758,9 @@ const BusinessDashboardView = {
                                         <span>Materialların tətbiq və silinmə iyerarxiyası:</span>
                                     </div>
                                     <div class="pl-5 text-slate-600 space-y-0.5 text-[11px] leading-relaxed">
-                                        <div>• <b>Ustanın fərdi texnoloji xəritəsi yoxdursa:</b> Materiallar bu baza siyahısından avtomatik silinir.</div>
+                                        <div>• <b>Ustanın fərdi texnoloji xəritəsi yoxdursa:</b> Materiallar bu baza texnoloji kartından avtomatik silinir.</div>
                                         <div>• <b>Ustanın fərdi xəritəsi varsa («Ustalar» bölməsində):</b> Həmin ustanın öz fərdi xəritəsi üstünlük təşkil edir.</div>
-                                        <div>• <b>Usta təyin olunmayıbsa və ya sonradan jurnalda seçilərsə:</b> Bu baza texnoloji xəritəsi tətbiq olunur.</div>
+                                        <div>• <b>Usta təyin olunmayıbsa və ya sonradan jurnalda seçilərsə:</b> Bu baza texnoloji kartı tətbiq olunur.</div>
                                     </div>
                                 </div>
 
@@ -2759,7 +2772,7 @@ const BusinessDashboardView = {
                                 <!-- Cost Summary -->
                                 <div id="srvFormMaterialCostSummary" class="p-3 bg-slate-100 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-800">
                                     <span>Materialların cəmi maya dəyəri:</span>
-                                    <span id="srvFormMaterialCostTotal" class="font-bold text-slate-900">0.00 ₼</span>
+                                    <span id="srvFormMaterialCostTotal" class="font-bold text-slate-900 font-mono">0.00 ₼</span>
                                 </div>
                             </div>
 
@@ -4333,64 +4346,43 @@ const BusinessDashboardView = {
             </div>
 
             <!-- ==========================================
-                 MODAL: SERVICE MATERIAL PICKER (TEXNOLOJİ XƏRİTƏ MATERİAL SEÇİMİ)
+                 MODAL: SERVICE TECH CARD PICKER (TEXNOLOJİ KART SEÇİMİ)
             =========================================== -->
             <div id="bizServiceMaterialPickerModal" style="z-index: 9999;" onclick="if(event.target === this) BusinessDashboardView.closeServiceMaterialPickerModal()" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs modal-fade">
                 <div class="bg-white border border-slate-200 rounded-[28px] max-w-xl w-full p-5 sm:p-6 shadow-2xl flex flex-col text-slate-800 max-h-[88vh] overflow-hidden">
                     <!-- Header -->
                     <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
                         <div>
-                            <h3 class="font-bold text-sm text-slate-900">Anbardan material seçimi</h3>
-                            <p class="text-[11px] text-slate-400 font-normal">Texnoloji xəritə üçün sərfiyyat malları və xammal</p>
+                            <h3 class="font-bold text-sm text-slate-900">Texnoloji kart seçimi</h3>
+                            <p class="text-[11px] text-slate-400 font-normal">Xidmət üçün baza standart sərfiyyat xəritəsi</p>
                         </div>
                         <button type="button" onclick="BusinessDashboardView.closeServiceMaterialPickerModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-black flex items-center justify-center transition cursor-pointer" title="Bağla">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
                         </button>
                     </div>
 
-                    <!-- Search, Warehouse & Category Filters -->
+                    <!-- Search & Count -->
                     <div class="pt-3 pb-2 space-y-2.5 shrink-0">
-                        <!-- Search and Warehouse Row -->
-                        <div class="flex items-center gap-2">
-                            <div class="relative flex-1">
-                                <input type="text" id="serviceMaterialPickerSearchInput" placeholder="Məhsul adı, SKU və ya barkod üzrə axtarış..." oninput="BusinessDashboardView.filterServiceMaterialPickerList()" class="w-full h-9 pl-8 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-900 focus:bg-white transition text-xs font-medium">
-                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                            </div>
-                            <select id="serviceMaterialPickerWarehouseSelect" onchange="BusinessDashboardView.onServiceMaterialPickerWarehouseChange(this.value)" class="h-9 px-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium outline-none focus:border-slate-900 cursor-pointer max-w-[140px] sm:max-w-[180px] truncate">
-                                <!-- Populated dynamically -->
-                            </select>
+                        <div class="relative flex-1">
+                            <input type="text" id="serviceMaterialPickerSearchInput" placeholder="Texnoloji kart adı və ya tərkib üzrə axtarış..." oninput="BusinessDashboardView.filterServiceMaterialPickerList()" class="w-full h-9 pl-8 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-900 focus:bg-white transition text-xs font-medium">
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         </div>
-
-                        <!-- Category Filter Pills -->
-                        <div id="serviceMaterialPickerCategoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                            <!-- Populated dynamically -->
-                        </div>
-
-                        <!-- Count and Quick Selection -->
                         <div class="flex items-center justify-between text-xs px-1">
-                            <span id="serviceMaterialPickerCountLabel" class="text-slate-500 font-medium text-[11px]">Seçilib: 0 material</span>
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="BusinessDashboardView.pickerSelectAllServiceMaterials()" class="text-[11px] font-semibold text-amber-800 hover:underline cursor-pointer">
-                                    Hamısını seç
-                                </button>
-                                <span class="text-slate-300">•</span>
-                                <button type="button" onclick="BusinessDashboardView.pickerClearAllServiceMaterials()" class="text-[11px] font-semibold text-slate-400 hover:text-slate-700 cursor-pointer">
-                                    Sıfırla
-                                </button>
-                            </div>
+                            <span id="serviceMaterialPickerCountLabel" class="text-slate-500 font-medium text-[11px]">Mövcud kartlar: 0</span>
                         </div>
                     </div>
 
-                    <!-- Products List Container -->
-                    <div id="serviceMaterialPickerListContainer" class="flex-1 overflow-y-auto py-1 space-y-1.5 min-h-[160px] max-h-[50vh] pr-0.5">
+                    <!-- Tech Cards List Container -->
+                    <div id="serviceMaterialPickerListContainer" class="flex-1 overflow-y-auto py-1 space-y-2 min-h-[160px] max-h-[50vh] pr-0.5">
                         <!-- Populated dynamically -->
                     </div>
 
                     <!-- Footer -->
                     <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
-                        <div class="text-xs text-slate-500">
-                            <span>Seçilmişlərin cəmi: </span>
-                            <span id="serviceMaterialPickerCostPreview" class="font-bold text-slate-900">0.00 ₼</span>
+                        <div class="text-xs text-slate-500 truncate max-w-[260px] sm:max-w-xs">
+                            <span>Seçilib: </span>
+                            <span id="serviceMaterialPickerSelectedName" class="font-bold text-slate-900">Seçilməyib</span>
+                            <span id="serviceMaterialPickerCostPreview" class="ml-1 text-slate-500 font-mono font-medium"></span>
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="BusinessDashboardView.closeServiceMaterialPickerModal()" class="px-4 h-9 rounded-xl bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 transition text-xs cursor-pointer">
@@ -27534,48 +27526,67 @@ const BusinessDashboardView = {
         `;
     },
 
-    // Materials methods & Service Material Picker Modal
+    // Materials & Technological Card methods for Service
     selectedServiceMaterials: [],
-    tempPickerServiceMaterialMap: {},
-    serviceMaterialPickerCategory: 'all',
-    serviceMaterialPickerWarehouseId: 'all',
+    selectedServiceTechCardId: null,
+    selectedServiceTechCardName: null,
+    tempSelectedServiceTechCardId: null,
+
+    populateServiceTechCardsSelect: function(selectedTechCardId) {
+        const select = document.getElementById('srvFormTechCardSelect');
+        if (!select) return;
+
+        const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+        if (techCards.length === 0) {
+            select.innerHTML = '<option value="">Texnoloji kart yoxdur (əvvəlcə kart yaradın)</option>';
+            return;
+        }
+
+        select.innerHTML = `
+            <option value="">-- Texnoloji kart seçilməyib --</option>
+            ${techCards.map(tc => {
+                const count = (tc.ingredients || []).length;
+                const cost = parseFloat(tc.totalCost || 0).toFixed(2);
+                const isSel = (tc.id === selectedTechCardId);
+                return `<option value="${tc.id}" ${isSel ? 'selected' : ''}>${this.escapeHtml(tc.name)} (${count} material · ${cost} ₼)</option>`;
+            }).join('')}
+        `;
+    },
+
+    onSelectServiceTechCard: function(techCardId) {
+        this.selectedServiceTechCardId = techCardId || null;
+        const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+        const tc = techCards.find(c => c.id === techCardId);
+
+        if (tc) {
+            this.selectedServiceTechCardName = tc.name;
+            this.selectedServiceMaterials = (tc.ingredients || []).map(ing => ({
+                productId: ing.productId,
+                name: ing.productName || ing.name || 'Məhsul',
+                qty: parseFloat(ing.qty) || 1,
+                unit: ing.unit || 'ədəd',
+                costPrice: parseFloat(ing.costPerUnit || ing.costPrice || 0),
+                totalCost: parseFloat(ing.totalCost) || (parseFloat(ing.qty || 1) * parseFloat(ing.costPerUnit || ing.costPrice || 0))
+            }));
+        } else {
+            this.selectedServiceTechCardName = null;
+            this.selectedServiceMaterials = [];
+        }
+
+        this.populateServiceTechCardsSelect(this.selectedServiceTechCardId);
+        this.renderServiceFormMaterialsList();
+        this.renderServiceModalTabs();
+    },
 
     openServiceMaterialPickerModal: function() {
         const modal = document.getElementById('bizServiceMaterialPickerModal');
         if (!modal) return;
 
-        // Populate warehouses dropdown in picker
-        const whSelect = document.getElementById('serviceMaterialPickerWarehouseSelect');
-        if (whSelect) {
-            const warehouses = (this.getWarehouses ? this.getWarehouses() : []);
-            whSelect.innerHTML = `
-                <option value="all">Bütün anbarlar üzrə</option>
-                ${warehouses.map(w => `<option value="${w.id}">${w.name} (${w.typeName || 'Anbar'})</option>`).join('')}
-            `;
-            whSelect.value = this.serviceMaterialPickerWarehouseId || 'all';
-        }
+        this.tempSelectedServiceTechCardId = this.selectedServiceTechCardId || null;
 
-        // Initialize temp map from existing selectedServiceMaterials
-        this.tempPickerServiceMaterialMap = {};
-        if (Array.isArray(this.selectedServiceMaterials)) {
-            this.selectedServiceMaterials.forEach(mat => {
-                this.tempPickerServiceMaterialMap[mat.productId] = {
-                    productId: mat.productId,
-                    qty: parseFloat(mat.qty) || 1,
-                    costPrice: parseFloat(mat.costPrice) || 0,
-                    unit: mat.unit || 'ədəd',
-                    name: mat.name,
-                    warehouseId: mat.warehouseId || 'wh_1',
-                    warehouseName: mat.warehouseName || 'Əsas anbar'
-                };
-            });
-        }
-
-        this.serviceMaterialPickerCategory = 'all';
         const searchInput = document.getElementById('serviceMaterialPickerSearchInput');
         if (searchInput) searchInput.value = '';
 
-        this.renderServiceMaterialPickerCategories();
         this.renderServiceMaterialPickerList();
         modal.classList.remove('hidden');
         if (searchInput) searchInput.focus();
@@ -27584,64 +27595,7 @@ const BusinessDashboardView = {
     closeServiceMaterialPickerModal: function() {
         const modal = document.getElementById('bizServiceMaterialPickerModal');
         if (modal) modal.classList.add('hidden');
-        this.tempPickerServiceMaterialMap = {};
-    },
-
-    onServiceMaterialPickerWarehouseChange: function(whId) {
-        this.serviceMaterialPickerWarehouseId = whId || 'all';
-        this.renderServiceMaterialPickerCategories();
-        this.renderServiceMaterialPickerList();
-    },
-
-    renderServiceMaterialPickerCategories: function() {
-        const container = document.getElementById('serviceMaterialPickerCategoryTabs');
-        if (!container) return;
-        const allProducts = (this.getProducts ? this.getProducts() : []);
-        const categories = (this.getProductCategories ? this.getProductCategories() : []);
-        const whId = this.serviceMaterialPickerWarehouseId || 'all';
-
-        let targetProducts = allProducts;
-        if (whId !== 'all') {
-            targetProducts = targetProducts.filter(p => (p.warehouseId || 'wh_1') === whId);
-        }
-
-        const activeCat = this.serviceMaterialPickerCategory || 'all';
-
-        let html = `
-            <button type="button" onclick="BusinessDashboardView.filterServiceMaterialPickerCategory('all')" class="px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${activeCat === 'all' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}">
-                Hamısı (${targetProducts.length})
-            </button>
-        `;
-
-        categories.forEach(cat => {
-            const count = targetProducts.filter(p => p.categoryId === cat.id).length;
-            if (count === 0) return;
-            const isActive = activeCat === cat.id;
-            html += `
-                <button type="button" onclick="BusinessDashboardView.filterServiceMaterialPickerCategory('${cat.id}')" class="px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${isActive ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}">
-                    ${cat.name} (${count})
-                </button>
-            `;
-        });
-
-        // Other / Uncategorized
-        const uncategorizedCount = targetProducts.filter(p => !p.categoryId || !categories.find(c => c.id === p.categoryId)).length;
-        if (uncategorizedCount > 0) {
-            const isActive = activeCat === 'uncategorized';
-            html += `
-                <button type="button" onclick="BusinessDashboardView.filterServiceMaterialPickerCategory('uncategorized')" class="px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${isActive ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}">
-                    Digər (${uncategorizedCount})
-                </button>
-            `;
-        }
-
-        container.innerHTML = html;
-    },
-
-    filterServiceMaterialPickerCategory: function(catId) {
-        this.serviceMaterialPickerCategory = catId;
-        this.renderServiceMaterialPickerCategories();
-        this.renderServiceMaterialPickerList();
+        this.tempSelectedServiceTechCardId = null;
     },
 
     filterServiceMaterialPickerList: function() {
@@ -27651,240 +27605,93 @@ const BusinessDashboardView = {
     renderServiceMaterialPickerList: function() {
         const container = document.getElementById('serviceMaterialPickerListContainer');
         const countLabel = document.getElementById('serviceMaterialPickerCountLabel');
+        const selectedNameEl = document.getElementById('serviceMaterialPickerSelectedName');
         const costPreview = document.getElementById('serviceMaterialPickerCostPreview');
         if (!container) return;
 
-        const allProducts = (this.getProducts ? this.getProducts() : []);
-        const categories = (this.getProductCategories ? this.getProductCategories() : []);
-        const warehouses = (this.getWarehouses ? this.getWarehouses() : []);
-        const whId = this.serviceMaterialPickerWarehouseId || 'all';
-        const activeCat = this.serviceMaterialPickerCategory || 'all';
-
+        const allTechCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
         const searchInput = document.getElementById('serviceMaterialPickerSearchInput');
         const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-        let filtered = allProducts;
-        if (whId !== 'all') {
-            filtered = filtered.filter(p => (p.warehouseId || 'wh_1') === whId);
-        }
-
-        if (activeCat !== 'all') {
-            if (activeCat === 'uncategorized') {
-                filtered = filtered.filter(p => !p.categoryId || !categories.find(c => c.id === p.categoryId));
-            } else {
-                filtered = filtered.filter(p => p.categoryId === activeCat);
-            }
-        }
-
+        let filtered = allTechCards;
         if (q) {
-            filtered = filtered.filter(p => {
-                const name = (p.name || '').toLowerCase();
-                const sku = (p.sku || '').toLowerCase();
-                const barcode = (p.barcode || '').toLowerCase();
-                const cat = categories.find(c => c.id === p.categoryId);
-                const catName = cat ? cat.name.toLowerCase() : '';
-                return name.includes(q) || sku.includes(q) || barcode.includes(q) || catName.includes(q);
+            filtered = filtered.filter(tc => {
+                const name = (tc.name || '').toLowerCase();
+                const srvName = (tc.serviceName || '').toLowerCase();
+                const notes = (tc.notes || '').toLowerCase();
+                const ings = (tc.ingredients || []).map(i => (i.productName || i.name || '').toLowerCase()).join(' ');
+                return name.includes(q) || srvName.includes(q) || notes.includes(q) || ings.includes(q);
             });
         }
 
-        const selectedCount = Object.keys(this.tempPickerServiceMaterialMap).length;
-        if (countLabel) countLabel.textContent = `Seçilib: ${selectedCount} material`;
+        if (countLabel) countLabel.textContent = `Mövcud kartlar: ${filtered.length}`;
 
-        // Calculate total cost preview
-        let totalCostSum = 0;
-        Object.keys(this.tempPickerServiceMaterialMap).forEach(id => {
-            const item = this.tempPickerServiceMaterialMap[id];
-            const p = allProducts.find(x => x.id === id);
-            const cost = p ? (parseFloat(p.costPrice) || 0) : (parseFloat(item.costPrice) || 0);
-            totalCostSum += (parseFloat(item.qty) || 1) * cost;
-        });
-        if (costPreview) costPreview.textContent = `${totalCostSum.toFixed(2)} ₼`;
+        // Selected card preview
+        const currentSel = allTechCards.find(c => c.id === this.tempSelectedServiceTechCardId);
+        if (selectedNameEl) {
+            selectedNameEl.textContent = currentSel ? currentSel.name : 'Seçilməyib';
+        }
+        if (costPreview) {
+            costPreview.textContent = currentSel ? `(${parseFloat(currentSel.totalCost || 0).toFixed(2)} ₼)` : '';
+        }
 
         if (filtered.length === 0) {
             container.innerHTML = `
                 <div class="py-8 text-center text-slate-400 text-xs">
-                    Seçilmiş anbar və ya kateqoriyada axtarışa uyğun material tapılmadı.
+                    ${q ? 'Axtarışa uyğun texnoloji kart tapılmadı.' : 'Hələ heç bir texnoloji kart yaradılmayıb.'}
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = filtered.map(p => {
-            const isSelected = this.tempPickerServiceMaterialMap.hasOwnProperty(p.id);
-            const selectedData = this.tempPickerServiceMaterialMap[p.id] || { qty: 1 };
-            const costPrice = parseFloat(p.costPrice) || 0;
-            const lineTotal = ((parseFloat(selectedData.qty) || 1) * costPrice).toFixed(2);
-            const pWhId = p.warehouseId || 'wh_1';
-            const whObj = warehouses.find(w => w.id === pWhId);
-            const whName = whObj ? whObj.name : 'Əsas anbar';
-            const cat = categories.find(c => c.id === p.categoryId);
-            const catName = cat ? cat.name : 'Ümumi';
+        container.innerHTML = filtered.map(tc => {
+            const isSelected = (tc.id === this.tempSelectedServiceTechCardId);
+            const totalCost = parseFloat(tc.totalCost || 0).toFixed(2);
+            const ingCount = (tc.ingredients || []).length;
+            const ingPreview = (tc.ingredients || []).slice(0, 3).map(i => `${i.productName || i.name} (${i.qty} ${i.unit || 'ədəd'})`).join(', ') + (ingCount > 3 ? `, +${ingCount - 3} digər` : '');
 
             return `
-                <div class="p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${isSelected ? 'border-slate-900 bg-white ring-1 ring-slate-900/10 shadow-2xs' : 'border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-300'}">
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <label class="flex items-center cursor-pointer shrink-0">
-                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="BusinessDashboardView.toggleServiceMaterialPickerItem('${p.id}', this.checked)" class="w-4 h-4 rounded text-slate-900 border-slate-300 focus:ring-slate-900 cursor-pointer">
-                        </label>
-                        <div class="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-500 overflow-hidden">
-                            ${p.image ? `<img src="${p.image}" class="w-full h-full object-cover">` : `<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`}
-                        </div>
-                        <div class="min-w-0">
-                            <div class="font-bold text-xs text-slate-900 truncate">${p.name}</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5">
-                                <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 font-medium">${whName}</span>
-                                <span>•</span>
-                                <span class="truncate">${catName}</span>
-                                <span>•</span>
-                                <span>Stok: <strong class="text-slate-700">${p.stock !== undefined ? p.stock : 0} ${p.unit || 'ədəd'}</strong></span>
-                                <span>•</span>
-                                <span>Maya: <strong>${costPrice.toFixed(2)} ₼</strong></span>
-                                ${isSelected ? `<span class="text-amber-800 font-bold">• Cəmi: ${lineTotal} ₼</span>` : ''}
+                <div onclick="BusinessDashboardView.selectTechCardInPicker('${tc.id}')" class="p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 ${isSelected ? 'border-slate-900 bg-amber-50/40 ring-1 ring-slate-900 shadow-2xs' : 'border-slate-200 bg-white hover:bg-slate-50/80 hover:border-slate-300'}">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white'}">
+                                ${isSelected ? `<div class="w-1.5 h-1.5 rounded-full bg-white"></div>` : ''}
                             </div>
+                            <div class="font-bold text-xs text-slate-900 truncate">${this.escapeHtml(tc.name)}</div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">${ingCount} material</span>
+                            <span class="text-xs font-bold font-mono text-slate-900">${totalCost} ₼</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        <div class="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden h-8">
-                            <button type="button" onclick="BusinessDashboardView.changeServiceMaterialPickerQty('${p.id}', -1, event)" class="w-6 h-full flex items-center justify-center text-slate-600 hover:text-black hover:bg-slate-100 transition font-bold cursor-pointer">-</button>
-                            <input type="number" step="any" min="0.01" value="${selectedData.qty}" onchange="BusinessDashboardView.updateServiceMaterialPickerQty('${p.id}', this.value)" class="w-12 h-full text-center text-xs font-bold bg-transparent outline-none text-slate-900">
-                            <button type="button" onclick="BusinessDashboardView.changeServiceMaterialPickerQty('${p.id}', 1, event)" class="w-6 h-full flex items-center justify-center text-slate-600 hover:text-black hover:bg-slate-100 transition font-bold cursor-pointer">+</button>
+                    ${tc.notes ? `<div class="text-[11px] text-slate-500 pl-6 leading-relaxed line-clamp-1">${this.escapeHtml(tc.notes)}</div>` : ''}
+                    ${ingPreview ? `
+                        <div class="text-[10px] text-slate-400 pl-6 flex items-center gap-1.5 truncate">
+                            <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <span class="truncate">${this.escapeHtml(ingPreview)}</span>
                         </div>
-                        <span class="text-[10px] text-slate-500 font-medium w-7 truncate">${p.unit || 'ədəd'}</span>
-                    </div>
+                    ` : ''}
                 </div>
             `;
         }).join('');
     },
 
-    toggleServiceMaterialPickerItem: function(prodId, isChecked) {
-        if (isChecked) {
-            if (!this.tempPickerServiceMaterialMap[prodId]) {
-                const p = (this.getProducts ? this.getProducts() : []).find(x => x.id === prodId);
-                const warehouses = (this.getWarehouses ? this.getWarehouses() : []);
-                const pWhId = p ? (p.warehouseId || 'wh_1') : 'wh_1';
-                const whObj = warehouses.find(w => w.id === pWhId);
-                this.tempPickerServiceMaterialMap[prodId] = {
-                    productId: prodId,
-                    name: p ? p.name : 'Məhsul',
-                    qty: 1,
-                    costPrice: p ? (parseFloat(p.costPrice) || 0) : 0,
-                    unit: p ? (p.unit || 'ədəd') : 'ədəd',
-                    warehouseId: pWhId,
-                    warehouseName: whObj ? whObj.name : 'Əsas anbar'
-                };
-            }
-        } else {
-            delete this.tempPickerServiceMaterialMap[prodId];
-        }
-        this.renderServiceMaterialPickerList();
-    },
-
-    changeServiceMaterialPickerQty: function(prodId, delta, event) {
-        if (event) {
-            event.stopPropagation();
-            event.preventDefault();
-        }
-        if (!this.tempPickerServiceMaterialMap[prodId]) {
-            this.toggleServiceMaterialPickerItem(prodId, true);
-        }
-        const cur = parseFloat(this.tempPickerServiceMaterialMap[prodId]?.qty) || 1;
-        const next = Math.max(0.01, parseFloat((cur + delta).toFixed(2)));
-        this.tempPickerServiceMaterialMap[prodId].qty = next;
-        this.renderServiceMaterialPickerList();
-    },
-
-    updateServiceMaterialPickerQty: function(prodId, val) {
-        if (!this.tempPickerServiceMaterialMap[prodId]) return;
-        const next = Math.max(0.01, parseFloat(val) || 1);
-        this.tempPickerServiceMaterialMap[prodId].qty = next;
-        this.renderServiceMaterialPickerList();
-    },
-
-    pickerSelectAllServiceMaterials: function() {
-        const allProducts = (this.getProducts ? this.getProducts() : []);
-        const categories = (this.getProductCategories ? this.getProductCategories() : []);
-        const warehouses = (this.getWarehouses ? this.getWarehouses() : []);
-        const whId = this.serviceMaterialPickerWarehouseId || 'all';
-        const activeCat = this.serviceMaterialPickerCategory || 'all';
-
-        const searchInput = document.getElementById('serviceMaterialPickerSearchInput');
-        const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-        let filtered = allProducts;
-        if (whId !== 'all') {
-            filtered = filtered.filter(p => (p.warehouseId || 'wh_1') === whId);
-        }
-        if (activeCat !== 'all') {
-            if (activeCat === 'uncategorized') {
-                filtered = filtered.filter(p => !p.categoryId || !categories.find(c => c.id === p.categoryId));
-            } else {
-                filtered = filtered.filter(p => p.categoryId === activeCat);
-            }
-        }
-        if (q) {
-            filtered = filtered.filter(p => {
-                const name = (p.name || '').toLowerCase();
-                const sku = (p.sku || '').toLowerCase();
-                const barcode = (p.barcode || '').toLowerCase();
-                const cat = categories.find(c => c.id === p.categoryId);
-                const catName = cat ? cat.name.toLowerCase() : '';
-                return name.includes(q) || sku.includes(q) || barcode.includes(q) || catName.includes(q);
-            });
-        }
-
-        filtered.forEach(p => {
-            if (!this.tempPickerServiceMaterialMap[p.id]) {
-                const pWhId = p.warehouseId || 'wh_1';
-                const whObj = warehouses.find(w => w.id === pWhId);
-                this.tempPickerServiceMaterialMap[p.id] = {
-                    productId: p.id,
-                    name: p.name,
-                    qty: 1,
-                    costPrice: parseFloat(p.costPrice) || 0,
-                    unit: p.unit || 'ədəd',
-                    warehouseId: pWhId,
-                    warehouseName: whObj ? whObj.name : 'Əsas anbar'
-                };
-            }
-        });
-        this.renderServiceMaterialPickerList();
-    },
-
-    pickerClearAllServiceMaterials: function() {
-        this.tempPickerServiceMaterialMap = {};
+    selectTechCardInPicker: function(techCardId) {
+        this.tempSelectedServiceTechCardId = techCardId;
         this.renderServiceMaterialPickerList();
     },
 
     applyServiceMaterialPickerSelection: function() {
-        const newMaterials = [];
-        const allProducts = (this.getProducts ? this.getProducts() : []);
-        const warehouses = (this.getWarehouses ? this.getWarehouses() : []);
-
-        Object.keys(this.tempPickerServiceMaterialMap).forEach(prodId => {
-            const item = this.tempPickerServiceMaterialMap[prodId];
-            const p = allProducts.find(x => x.id === prodId);
-            const pWhId = p ? (p.warehouseId || 'wh_1') : 'wh_1';
-            const whObj = warehouses.find(w => w.id === pWhId);
-
-            newMaterials.push({
-                productId: prodId,
-                name: p ? p.name : (item.name || 'Məhsul'),
-                unit: p ? (p.unit || 'ədəd') : (item.unit || 'ədəd'),
-                costPrice: p ? (parseFloat(p.costPrice) || 0) : (parseFloat(item.costPrice) || 0),
-                qty: parseFloat(item.qty) || 1,
-                warehouseId: pWhId,
-                warehouseName: whObj ? whObj.name : 'Əsas anbar'
-            });
-        });
-
-        this.selectedServiceMaterials = newMaterials;
-        this.renderServiceFormMaterialsList();
-        this.renderServiceModalTabs();
+        if (this.tempSelectedServiceTechCardId) {
+            this.onSelectServiceTechCard(this.tempSelectedServiceTechCardId);
+        } else {
+            this.clearAllServiceMaterials();
+        }
         this.closeServiceMaterialPickerModal();
     },
 
     removeServiceFormMaterial: function(index) {
-        if (this.selectedServiceMaterials[index]) {
+        if (this.selectedServiceMaterials && this.selectedServiceMaterials[index]) {
             this.selectedServiceMaterials.splice(index, 1);
             this.renderServiceFormMaterialsList();
             this.renderServiceModalTabs();
@@ -27892,21 +27699,24 @@ const BusinessDashboardView = {
     },
 
     clearAllServiceMaterials: function() {
+        this.selectedServiceTechCardId = null;
+        this.selectedServiceTechCardName = null;
         this.selectedServiceMaterials = [];
+        this.populateServiceTechCardsSelect(null);
         this.renderServiceFormMaterialsList();
         this.renderServiceModalTabs();
     },
 
     updateServiceFormMaterialQty: function(index, qtyVal) {
         const qty = Math.max(0.01, parseFloat(qtyVal) || 0.1);
-        if (this.selectedServiceMaterials[index]) {
+        if (this.selectedServiceMaterials && this.selectedServiceMaterials[index]) {
             this.selectedServiceMaterials[index].qty = qty;
             this.renderServiceFormMaterialsList();
         }
     },
 
     adjustServiceFormMaterialQty: function(index, delta) {
-        if (!this.selectedServiceMaterials[index]) return;
+        if (!this.selectedServiceMaterials || !this.selectedServiceMaterials[index]) return;
         const cur = parseFloat(this.selectedServiceMaterials[index].qty) || 1;
         const next = Math.max(0.01, parseFloat((cur + delta).toFixed(2)));
         this.selectedServiceMaterials[index].qty = next;
@@ -27919,23 +27729,47 @@ const BusinessDashboardView = {
         const subhead = document.getElementById('srvFormMaterialsSubhead');
         const clearBtn = document.getElementById('srvFormMaterialClearBtn');
         const costSummary = document.getElementById('srvFormMaterialCostSummary');
+        const pickerBtnLabel = document.getElementById('srvFormMaterialPickerBtnLabel');
+        const notesBox = document.getElementById('srvFormTechCardNotes');
+        const select = document.getElementById('srvFormTechCardSelect');
         if (!container) return;
+
+        if (select && this.selectedServiceTechCardId) {
+            select.value = this.selectedServiceTechCardId;
+        }
+
+        const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+        const activeTc = techCards.find(c => c.id === this.selectedServiceTechCardId);
+
+        if (notesBox) {
+            if (activeTc && activeTc.notes) {
+                notesBox.innerHTML = `<b>Təsvir:</b> ${this.escapeHtml(activeTc.notes)}`;
+                notesBox.classList.remove('hidden');
+            } else {
+                notesBox.innerHTML = '';
+                notesBox.classList.add('hidden');
+            }
+        }
+
+        if (pickerBtnLabel) {
+            pickerBtnLabel.textContent = this.selectedServiceTechCardId ? 'Kartı dəyiş' : 'Texnoloji kart seç';
+        }
 
         let totalCost = 0;
         if (!this.selectedServiceMaterials || this.selectedServiceMaterials.length === 0) {
             if (clearBtn) clearBtn.classList.add('hidden');
-            if (subhead) subhead.textContent = 'Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda bu siyahı tətbiq olunur.';
+            if (subhead) subhead.textContent = 'Xidmət üzrə standart anbar sərfiyyatı. Ustanın fərdi xəritəsi olmadıqda bu texnoloji kart tətbiq olunur.';
             if (costSummary) costSummary.classList.add('hidden');
             container.innerHTML = `
                 <div class="py-8 px-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center flex flex-col items-center justify-center">
                     <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 flex items-center justify-center mb-2 shadow-2xs">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </div>
-                    <div class="text-xs font-bold text-slate-700">Baza materialları təyin edilməyib</div>
-                    <p class="text-[11px] text-slate-400 mt-0.5 max-w-xs">Xidmət üçün standart anbar sərfiyyatını seçin. Ustanın fərdi xəritəsi olmadıqda və ya jurnalda seçim edildikdə materiallar buradan silinəcək.</p>
+                    <div class="text-xs font-bold text-slate-700">Baza texnoloji kartı təyin edilməyib</div>
+                    <p class="text-[11px] text-slate-400 mt-0.5 max-w-xs">Xidmət üçün standart sərfiyyat normasını texnoloji kartlar siyahısından seçin.</p>
                     <button type="button" onclick="BusinessDashboardView.openServiceMaterialPickerModal()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        <span>Material seç</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        <span>Texnoloji kart seç</span>
                     </button>
                 </div>
             `;
@@ -27944,7 +27778,8 @@ const BusinessDashboardView = {
         }
 
         if (clearBtn) clearBtn.classList.remove('hidden');
-        if (subhead) subhead.textContent = `${this.selectedServiceMaterials.length} baza materialı təyin edilib (bütün ustalar üçün standart)`;
+        const cardTitle = this.selectedServiceTechCardName ? `«${this.selectedServiceTechCardName}»` : 'Standart kart';
+        if (subhead) subhead.textContent = `${cardTitle} üzrə ${this.selectedServiceMaterials.length} növ material təyin edilib`;
         if (costSummary) costSummary.classList.remove('hidden');
 
         container.innerHTML = `
@@ -27962,8 +27797,8 @@ const BusinessDashboardView = {
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                 </div>
                                 <div class="min-w-0 text-left">
-                                    <div class="font-bold text-xs text-slate-900 truncate">${mat.name}</div>
-                                    <div class="text-[10px] text-slate-400 mt-0.5">${costPrice.toFixed(2)} ₼ / ${mat.unit || 'ədəd'}</div>
+                                    <div class="font-bold text-xs text-slate-900 truncate">${this.escapeHtml(mat.name || '')}</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5 font-mono">${costPrice.toFixed(2)} ₼ / ${this.escapeHtml(mat.unit || 'ədəd')}</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2.5 shrink-0">
@@ -27972,8 +27807,8 @@ const BusinessDashboardView = {
                                     <input type="number" min="0.01" step="any" value="${mat.qty}" onchange="BusinessDashboardView.updateServiceFormMaterialQty(${idx}, this.value)" class="w-12 h-full text-center text-xs font-bold bg-white outline-none text-slate-900 border-x border-slate-200">
                                     <button type="button" onclick="BusinessDashboardView.adjustServiceFormMaterialQty(${idx}, 1)" class="w-6 h-full flex items-center justify-center text-slate-600 hover:text-black hover:bg-slate-200 transition font-bold cursor-pointer">+</button>
                                 </div>
-                                <span class="text-slate-500 text-[11px] font-medium w-8 truncate">${mat.unit || 'ədəd'}</span>
-                                <div class="w-16 text-right font-bold text-slate-900 text-xs">${lineCost.toFixed(2)} ₼</div>
+                                <span class="text-slate-500 text-[11px] font-medium w-8 truncate">${this.escapeHtml(mat.unit || 'ədəd')}</span>
+                                <div class="w-16 text-right font-bold text-slate-900 text-xs font-mono">${lineCost.toFixed(2)} ₼</div>
                                 <button type="button" onclick="BusinessDashboardView.removeServiceFormMaterial(${idx})" class="p-1.5 rounded-lg border border-slate-200 hover:border-red-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0" title="Sil">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
@@ -28488,7 +28323,17 @@ const BusinessDashboardView = {
             this.selectedServiceStaffIds = Array.isArray(srv.staffIds) ? [...srv.staffIds] : [];
             this.serviceStaffOverrides = (srv.staffOverrides && typeof srv.staffOverrides === 'object') ? JSON.parse(JSON.stringify(srv.staffOverrides)) : {};
             this.selectedServiceResourceIds = Array.isArray(srv.resourceIds) ? [...srv.resourceIds] : [];
+            this.selectedServiceTechCardId = srv.techCardId || null;
+            this.selectedServiceTechCardName = srv.techCardName || null;
             this.selectedServiceMaterials = Array.isArray(srv.materials) ? JSON.parse(JSON.stringify(srv.materials)) : [];
+            if (!this.selectedServiceTechCardId && this.selectedServiceMaterials.length > 0) {
+                const techCards = (typeof this.getTechCards === 'function') ? this.getTechCards() : [];
+                const match = techCards.find(tc => tc.serviceName === srv.name || tc.name === srv.name);
+                if (match) {
+                    this.selectedServiceTechCardId = match.id;
+                    this.selectedServiceTechCardName = match.name;
+                }
+            }
             this.serviceFormImages = Array.isArray(srv.images) ? [...srv.images] : (srv.image ? [srv.image] : []);
         } else {
             // CREATE MODE
@@ -28545,6 +28390,8 @@ const BusinessDashboardView = {
             this.selectedServiceStaffIds = [];
             this.serviceStaffOverrides = {};
             this.selectedServiceResourceIds = [];
+            this.selectedServiceTechCardId = null;
+            this.selectedServiceTechCardName = null;
             this.selectedServiceMaterials = [];
             this.serviceFormImages = [];
         }
@@ -28553,6 +28400,7 @@ const BusinessDashboardView = {
         this.renderComboItemsList();
         this.renderServiceFormStaffOptions();
         this.renderServiceFormResourceOptions();
+        this.populateServiceTechCardsSelect(this.selectedServiceTechCardId);
         this.renderServiceFormMaterialsList();
         this.renderServiceLanguagesTab();
         this.renderServiceFormImages();
@@ -28714,6 +28562,8 @@ const BusinessDashboardView = {
                     staffIds: [...this.selectedServiceStaffIds],
                     staffOverrides: JSON.parse(JSON.stringify(this.serviceStaffOverrides || {})),
                     resourceIds: [...this.selectedServiceResourceIds],
+                    techCardId: this.selectedServiceTechCardId || null,
+                    techCardName: this.selectedServiceTechCardName || null,
                     materials: [...this.selectedServiceMaterials],
                     translations: translations,
                     notifications: notifications
@@ -28746,6 +28596,8 @@ const BusinessDashboardView = {
                 staffIds: [...this.selectedServiceStaffIds],
                 staffOverrides: JSON.parse(JSON.stringify(this.serviceStaffOverrides || {})),
                 resourceIds: [...this.selectedServiceResourceIds],
+                techCardId: this.selectedServiceTechCardId || null,
+                techCardName: this.selectedServiceTechCardName || null,
                 materials: [...this.selectedServiceMaterials],
                 translations: translations,
                 notifications: notifications,
