@@ -6874,6 +6874,8 @@ const BusinessDashboardView = {
     calendarSearchQuery: '',
     pendingOnlineTab: 'all', // 'all' | 'all_pending' | 'today' | 'confirmed'
     pendingOnlineSearchQuery: '',
+    pendingOnlinePage: 1,
+    pendingOnlinePageSize: 10,
     calendarPage: 1,
     calendarPageSize: 10,
     bookingEditingId: null,
@@ -6899,6 +6901,18 @@ const BusinessDashboardView = {
 
     setPendingOnlineTab: function(tab) {
         this.pendingOnlineTab = tab;
+        this.pendingOnlinePage = 1;
+        this.refreshCalendar();
+    },
+
+    setPendingOnlinePage: function(p) {
+        this.pendingOnlinePage = p;
+        this.refreshCalendar();
+    },
+
+    setPendingOnlinePageSize: function(sz) {
+        this.pendingOnlinePageSize = parseInt(sz, 10);
+        this.pendingOnlinePage = 1;
         this.refreshCalendar();
     },
 
@@ -7691,6 +7705,12 @@ const BusinessDashboardView = {
         const totalPendingAmount = filtered.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
         const allClients = this.getClientsData();
 
+        const pageSize = this.pendingOnlinePageSize || 10;
+        const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+        const currentPage = Math.min(this.pendingOnlinePage || 1, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const pageItems = filtered.slice(startIndex, startIndex + pageSize);
+
         return `
             <div class="p-4 sm:p-6 space-y-5">
                 <!-- Header & Stats -->
@@ -7732,12 +7752,12 @@ const BusinessDashboardView = {
 
                     <!-- Search Input -->
                     <div class="relative min-w-[240px]">
-                        <input type="text" placeholder="Müştəri, nömrə və ya xidmət üzrə axtarış..." value="${this.pendingOnlineSearchQuery || ''}" oninput="BusinessDashboardView.pendingOnlineSearchQuery = this.value; BusinessDashboardView.refreshCalendar();" class="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-amber-400 transition" />
+                        <input type="text" placeholder="Müştəri, nömrə və ya xidmət üzrə axtarış..." value="${this.pendingOnlineSearchQuery || ''}" oninput="BusinessDashboardView.pendingOnlineSearchQuery = this.value; BusinessDashboardView.pendingOnlinePage = 1; BusinessDashboardView.refreshCalendar();" class="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-amber-400 transition" />
                         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </div>
                 </div>
 
-                <!-- Cards Grid -->
+                <!-- Table List View -->
                 ${filtered.length === 0 ? `
                     <div class="py-12 px-4 text-center">
                         <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
@@ -7747,135 +7767,152 @@ const BusinessDashboardView = {
                         <p class="text-xs text-slate-500 mt-1">Seçilmiş filtr üzrə heç bir onlayn qəbul müraciəti mövcud deyil.</p>
                     </div>
                 ` : `
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        ${filtered.map(b => {
-                            const isPending = b.status === 'Gözlənilir';
-                            const cleanDigits = this.getCleanPhoneDigits(b.phone);
-                            const normName = (b.clientName || '').trim().toLowerCase();
-                            const existingClient = allClients.find(c => {
-                                const cDigits = this.getCleanPhoneDigits(c.phone);
-                                if (cleanDigits && cDigits && cleanDigits === cDigits) return true;
-                                if (normName && (c.name || '').trim().toLowerCase() === normName) return true;
-                                return false;
-                            });
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200/80">
+                                <tr>
+                                    <th class="py-3 px-4">Tarix & Vaxt</th>
+                                    <th class="py-3 px-4">Müştəri</th>
+                                    <th class="py-3 px-4">Xidmət & Usta</th>
+                                    <th class="py-3 px-4 text-right">Məbləğ & Müddət</th>
+                                    <th class="py-3 px-4 text-center">Status</th>
+                                    <th class="py-3 px-4 text-right">Əməliyyat</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${pageItems.map(b => {
+                                    const isPending = b.status === 'Gözlənilir';
+                                    const cleanDigits = this.getCleanPhoneDigits(b.phone);
+                                    const normName = (b.clientName || '').trim().toLowerCase();
+                                    const existingClient = allClients.find(c => {
+                                        const cDigits = this.getCleanPhoneDigits(c.phone);
+                                        if (cleanDigits && cDigits && cleanDigits === cDigits) return true;
+                                        if (normName && (c.name || '').trim().toLowerCase() === normName) return true;
+                                        return false;
+                                    });
 
-                            return `
-                                <div class="p-4 rounded-2xl border ${isPending ? 'border-amber-300/80 bg-white shadow-2xs hover:shadow-xs' : 'border-slate-200/80 bg-white shadow-2xs'} transition flex flex-col justify-between space-y-3.5">
-                                    <!-- Top Row: Status, Source and Time -->
-                                    <div class="flex items-center justify-between gap-2 flex-wrap text-xs">
-                                        <div class="flex items-center gap-1.5">
-                                            ${isPending ? `
-                                                <span class="px-2.5 py-0.5 rounded-md font-bold bg-amber-50 text-amber-900 border border-amber-200">
-                                                    Təsdiq gözləyir
-                                                </span>
-                                            ` : (b.status === 'Təsdiqləndi' ? `
-                                                <span class="px-2.5 py-0.5 rounded-md font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                    Təsdiqlənib
-                                                </span>
-                                            ` : `
-                                                <span class="px-2.5 py-0.5 rounded-md font-bold bg-slate-100 text-slate-700">
-                                                    ${b.status}
-                                                </span>
-                                            `)}
-
-                                            <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
-                                                Onlayn qəbul
-                                            </span>
-                                        </div>
-
-                                        <div class="flex items-center gap-1.5 text-slate-600 font-semibold text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                            <span>${b.date} • ${b.time}</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Middle: Client & Service Details -->
-                                    <div class="space-y-2.5">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 font-bold text-sm flex items-center justify-center shrink-0">
-                                                    ${(b.clientName || 'M').charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                                                        <span>${b.clientName}</span>
-                                                        ${existingClient ? `
-                                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60" title="CRM Müştərisi">
-                                                                Mövcud
-                                                            </span>
-                                                        ` : `
-                                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600" title="Yeni Qeydiyyat">
-                                                                Yeni
-                                                            </span>
-                                                        `}
+                                    return `
+                                        <tr class="hover:bg-slate-50/70 transition ${isPending ? 'bg-amber-50/15' : ''}">
+                                            <!-- Tarix & Vaxt -->
+                                            <td class="py-3 px-4 whitespace-nowrap">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-xl ${isPending ? 'bg-amber-100/70 text-amber-900' : 'bg-slate-100 text-slate-600'} flex items-center justify-center shrink-0">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                                     </div>
-                                                    <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
-                                                        <a href="tel:${b.phone}" class="font-mono text-slate-700 hover:text-amber-600 font-semibold transition">${b.phone}</a>
-                                                        ${existingClient && (parseFloat(existingClient.depositBalance) > 0 || parseFloat(existingClient.cashbackBalance) > 0) ? `
-                                                            <span>•</span>
-                                                            <span class="text-emerald-700 font-semibold text-[11px]">Depozit: ${(parseFloat(existingClient.depositBalance) || 0).toFixed(2)} ₼</span>
-                                                        ` : ''}
+                                                    <div>
+                                                        <div class="font-bold text-slate-900 font-mono text-xs">${this.escapeHtml(b.date || '—')}</div>
+                                                        <div class="text-[11px] text-slate-500 font-semibold font-mono">${this.escapeHtml(b.time || '—')}</div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </td>
 
-                                            <div class="text-right">
-                                                <div class="font-bold text-slate-900 text-sm font-mono">${b.price} ₼</div>
+                                            <!-- Müştəri -->
+                                            <td class="py-3 px-4">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0">
+                                                        ${this.escapeHtml((b.clientName || 'M').charAt(0))}
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5 flex-wrap">
+                                                            <span class="truncate">${this.escapeHtml(b.clientName || 'Adsız')}</span>
+                                                            ${existingClient ? `
+                                                                <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0">Mövcud</span>
+                                                            ` : `
+                                                                <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 shrink-0">Yeni</span>
+                                                            `}
+                                                        </div>
+                                                        <div class="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                                                            <a href="tel:${this.escapeHtml(b.phone || '')}" class="font-mono text-slate-600 hover:text-amber-600 font-medium transition">${this.escapeHtml(b.phone || '')}</a>
+                                                            ${existingClient && (parseFloat(existingClient.depositBalance) > 0 || parseFloat(existingClient.cashbackBalance) > 0) ? `
+                                                                <span class="text-emerald-700 font-semibold text-[10px]">Depozit: ${(parseFloat(existingClient.depositBalance) || 0).toFixed(2)} ₼</span>
+                                                            ` : ''}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Xidmət & Usta -->
+                                            <td class="py-3 px-4">
+                                                <div class="font-bold text-slate-900 text-xs line-clamp-1">${this.escapeHtml(b.service || '—')}</div>
+                                                <div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                                    <span class="text-slate-400">Usta:</span>
+                                                    <span class="font-semibold text-slate-700 truncate">${this.escapeHtml(b.masterName || 'İstənilən usta')}</span>
+                                                </div>
+                                                ${b.note ? `<div class="text-[10px] text-slate-400 italic truncate max-w-xs mt-0.5" title="${this.escapeHtml(b.note)}">Qeyd: ${this.escapeHtml(b.note)}</div>` : ''}
+                                            </td>
+
+                                            <!-- Məbləğ & Müddət -->
+                                            <td class="py-3 px-4 text-right whitespace-nowrap">
+                                                <div class="font-bold text-slate-900 font-mono text-xs">${b.price ? b.price + ' ₼' : '0.00 ₼'}</div>
                                                 <div class="text-[11px] text-slate-400 font-medium">${b.durationMinutes || 30} dəq</div>
-                                            </div>
-                                        </div>
+                                            </td>
 
-                                        <!-- Service & Master -->
-                                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs space-y-1">
-                                            <div class="flex items-center justify-between text-slate-700">
-                                                <span class="font-medium text-slate-500">Xidmət:</span>
-                                                <span class="font-bold text-slate-900 text-right truncate">${b.service}</span>
-                                            </div>
-                                            <div class="flex items-center justify-between text-slate-700">
-                                                <span class="font-medium text-slate-500">Təyin olunan mütəxəssis:</span>
-                                                <span class="font-semibold text-slate-800 text-right truncate">${b.masterName || 'İstənilən usta'}</span>
-                                            </div>
-                                            ${b.note ? `
-                                                <div class="pt-1 border-t border-slate-200/60 text-[11px] text-slate-600">
-                                                    <span class="font-bold text-slate-700">Qeyd:</span> ${b.note}
+                                            <!-- Status -->
+                                            <td class="py-3 px-4 text-center whitespace-nowrap">
+                                                ${isPending ? `
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                        Təsdiq gözləyir
+                                                    </span>
+                                                ` : (b.status === 'Təsdiqləndi' ? `
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                        Təsdiqlənib
+                                                    </span>
+                                                ` : `
+                                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700">
+                                                        ${this.escapeHtml(b.status || 'Gözlənilir')}
+                                                    </span>
+                                                `)}
+                                                <div class="mt-0.5">
+                                                    <span class="text-[10px] font-medium text-blue-600 bg-blue-50/70 px-1.5 py-0.2 rounded border border-blue-200/50">Onlayn qəbul</span>
                                                 </div>
-                                            ` : ''}
-                                        </div>
-                                    </div>
+                                            </td>
 
-                                    <!-- Bottom: Action Buttons -->
-                                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                                        <div class="flex items-center gap-1.5">
-                                            <button type="button" onclick="BusinessDashboardView.openBookingModal('${b.id}')" class="px-3 h-8.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1">
-                                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                                <span>Redaktə et</span>
-                                            </button>
-
-                                            ${isPending ? `
-                                                <button type="button" onclick="BusinessDashboardView.rejectOnlineBooking('${b.id}')" class="px-2.5 h-8.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs transition cursor-pointer">
-                                                    İmtina
-                                                </button>
-                                            ` : ''}
-                                        </div>
-
-                                        <div>
-                                            ${isPending ? `
-                                                <button type="button" onclick="BusinessDashboardView.confirmOnlineBooking('${b.id}')" class="px-4 h-8.5 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5 active:scale-95">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    <span>Təsdiqlə və cədvələ sal</span>
-                                                </button>
-                                            ` : `
-                                                <span class="text-xs text-emerald-700 font-bold flex items-center gap-1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    Cədvəldədir
-                                                </span>
-                                            `}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
+                                            <!-- Əməliyyat -->
+                                            <td class="py-3 px-4 text-right whitespace-nowrap">
+                                                <div class="flex items-center justify-end gap-1.5">
+                                                    ${isPending ? `
+                                                        <button type="button" onclick="BusinessDashboardView.confirmOnlineBooking('${b.id}')" class="h-8 px-3 rounded-xl bg-[#FFDD2D] hover:bg-[#FCC520] text-[#101114] font-bold text-xs transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5 active:scale-95">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                            <span>Təsdiqlə</span>
+                                                        </button>
+                                                        <button type="button" onclick="BusinessDashboardView.openBookingModal('${b.id}')" class="h-8 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer inline-flex items-center gap-1" title="Redaktə et">
+                                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                                            <span>Redaktə</span>
+                                                        </button>
+                                                        <button type="button" onclick="BusinessDashboardView.rejectOnlineBooking('${b.id}')" class="h-8 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs transition cursor-pointer inline-flex items-center gap-1" title="İmtina et">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                            <span>İmtina</span>
+                                                        </button>
+                                                    ` : `
+                                                        <span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-bold px-2.5 py-1 bg-emerald-50 rounded-xl border border-emerald-200/60">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                            Cədvəldədir
+                                                        </span>
+                                                        <button type="button" onclick="BusinessDashboardView.openBookingModal('${b.id}')" class="h-8 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer inline-flex items-center gap-1">
+                                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                                            <span>Bax</span>
+                                                        </button>
+                                                    `}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
                     </div>
+
+                    <!-- Pagination -->
+                    ${this.renderTablePagination({
+                        totalItems: filtered.length,
+                        currentPage: currentPage,
+                        pageSize: pageSize,
+                        onPageChange: 'BusinessDashboardView.setPendingOnlinePage',
+                        onPageSizeChange: 'BusinessDashboardView.setPendingOnlinePageSize',
+                        itemName: 'müraciət'
+                    })}
                 `}
             </div>
         `;
