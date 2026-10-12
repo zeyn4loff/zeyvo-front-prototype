@@ -3,17 +3,28 @@
 // ========================================================
 const MasterDetailView = {
     render: function(params) {
-        const id = parseInt(params.id) || 1;
-        const master = ZeyvoData.masters.find(m => m.id === id) || ZeyvoData.masters[0];
-        const salon = ZeyvoData.salons.find(s => s.id === master.salonId) || ZeyvoData.salons[0];
+        const id = Number.parseInt(params.id, 10);
+        const master = ZeyvoData.masters.find(m => m.id === id);
+        if (!master) {
+            return `
+                <div class="py-16 px-4 text-center bg-white rounded-3xl border border-tbank-border">
+                    <h1 class="text-xl font-black text-tbank-graphite">Mütəxəssis tapılmadı</h1>
+                    <p class="mt-2 text-xs text-slate-500">Bu profil silinib və ya keçid yanlışdır.</p>
+                    <a href="#/masters" class="inline-flex mt-5 h-10 px-5 items-center rounded-xl bg-tbank-yellow text-tbank-graphite text-xs font-black">Ustalara qayıt</a>
+                </div>`;
+        }
+        const salon = ZeyvoData.salons.find(s => s.id === master.salonId);
+        if (!salon) {
+            return `
+                <div class="py-16 px-4 text-center bg-white rounded-3xl border border-tbank-border">
+                    <h1 class="text-xl font-black text-tbank-graphite">Məkan tapılmadı</h1>
+                    <p class="mt-2 text-xs text-slate-500">Mütəxəssisin bağlı olduğu məkan artıq mövcud deyil.</p>
+                    <a href="#/masters" class="inline-flex mt-5 h-10 px-5 items-center rounded-xl bg-tbank-yellow text-tbank-graphite text-xs font-black">Ustalara qayıt</a>
+                </div>`;
+        }
 
-        // Ensure default services for this master if not defined
-        const services = master.services || [
-            { name: "Əsas xidmət (" + master.title + ")", duration: "45 dəq", price: 25 },
-            { name: "Kompleks premium qulluq", duration: "60 dəq", price: 40 },
-            { name: "Ekspress xidmət", duration: "30 dəq", price: 20 },
-            { name: "Fərdi konsultasiya və dizayn", duration: "20 dəq", price: 15 }
-        ];
+        // Booking and profile must use the same service records and IDs.
+        const services = (master.services && master.services.length) ? master.services : salon.services;
 
         // Ensure default portfolio photos for this master
         const portfolio = master.portfolio || [
@@ -61,9 +72,7 @@ const MasterDetailView = {
                     </div>
 
                     <!-- Mobile Favorite Button in top bar -->
-                    <button onclick="App.toggleFavorite(${master.id}, 'master', event)" class="fav-btn-master-${master.id} sm:hidden w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 shadow-xs transition active:scale-90 shrink-0" title="Seçilmişlər">
-                        <svg class="w-4 h-4 ${App.isFavorite('master', master.id) ? 'text-rose-500 fill-current' : 'fill-none stroke-current'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    </button>
+                    ${MarketplaceUI.favoriteButton({ id: master.id, type: 'master', variant: 'mobile' })}
                 </div>
 
                 <!-- 1. Top Specialist Profile Card (Mobile First) -->
@@ -113,9 +122,7 @@ const MasterDetailView = {
 
                     <!-- Right Action Buttons (Desktop) -->
                     <div class="hidden sm:flex items-center gap-2 shrink-0">
-                        <button onclick="App.toggleFavorite(${master.id}, 'master', event)" title="Sevimlilərə əlavə et" class="fav-btn-master-${master.id} w-10 h-10 rounded-xl border border-tbank-border hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-rose-500 transition active:scale-90">
-                            <svg class="w-4 h-4 ${App.isFavorite('master', master.id) ? 'text-rose-500 fill-current' : 'fill-none stroke-current'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </button>
+                        ${MarketplaceUI.favoriteButton({ id: master.id, type: 'master', variant: 'detail' })}
                         <button onclick="App.showToast('Çat açılır...')" title="Mesaj yaz" class="w-10 h-10 rounded-xl border border-tbank-border hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-black transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         </button>
@@ -186,7 +193,7 @@ const MasterDetailView = {
                                         <div class="min-w-0">
                                             <div class="font-bold text-xs sm:text-sm text-tbank-graphite">${s.name}</div>
                                             <div class="text-[11px] text-slate-400 font-medium mt-0.5 flex items-center gap-2">
-                                                <span>⏱️ ${s.duration}</span>
+                                                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${s.duration}</span>
                                                 <span>•</span>
                                                 <span class="text-emerald-600 font-semibold">Təsdiq dərhal</span>
                                             </div>

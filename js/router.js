@@ -11,6 +11,7 @@ const Router = {
         '/salons/:category': SalonsView,
         '/salons/:category/:subcategory': SalonsView,
         '/masters': MastersView,
+        '/for-business': BusinessView,
         '/master/:id': MasterDetailView,
         '/business': BusinessDashboardView,
         '/business/auth': BusinessAuthView,
@@ -86,6 +87,13 @@ const Router = {
 
         const cleanPath = hash.split('?')[0].replace(/\/+$/, '') || '/';
 
+        if (this._lastPath && this._lastPath !== cleanPath) {
+            document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                if (!modal.closest('#app-view') && !modal.classList.contains('hidden')) modal.classList.add('hidden');
+            });
+        }
+        this._lastPath = cleanPath;
+
         // Auto-redirect logged-in partners to their selected startView
         if (cleanPath === '/business' || cleanPath === '/business/auth') {
             if (localStorage.getItem('zeyvo_partner_user')) {
@@ -151,20 +159,6 @@ const Router = {
         const appContainer = document.getElementById('app-view');
 
         if (!routeResult) {
-            if (cleanPath.startsWith('/business') && cleanPath !== '/business/auth' && typeof BusinessDashboardView !== 'undefined') {
-                try {
-                    appContainer.innerHTML = BusinessDashboardView.render({});
-                    if (BusinessDashboardView.afterRender) {
-                        BusinessDashboardView.afterRender({});
-                    }
-                    this.updateNavHighlight(cleanPath);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    return;
-                } catch (e) {
-                    console.error("Fallback render error:", e);
-                }
-            }
-
             appContainer.innerHTML = `
                 <div class="text-center py-16 bg-white rounded-3xl border border-tbank-border">
                     <h2 class="text-xl sm:text-2xl font-black text-tbank-graphite">404 - Səhifə tapılmadı</h2>
@@ -231,11 +225,6 @@ const Router = {
             }
         }
 
-        // Dedicated fallback for any /business sub-routes
-        if (cleanHash.startsWith('/business') && cleanHash !== '/business/auth' && typeof BusinessDashboardView !== 'undefined') {
-            return { view: BusinessDashboardView, params: queryParams };
-        }
-
         return null;
     },
 
@@ -257,9 +246,9 @@ const Router = {
                              (route === '/salons' && (hash.startsWith('/catalog') || hash.startsWith('/salons'))) ||
                              (route === '/masters' && hash === '/masters');
             if (isActive) {
-                btn.className = "mobile-nav-btn flex flex-col items-center gap-1 text-[10px] font-black text-tbank-graphite";
+                btn.className = "mobile-nav-btn flex flex-col items-center gap-0.5 text-[10px] font-black text-tbank-graphite";
             } else {
-                btn.className = "mobile-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite";
+                btn.className = "mobile-nav-btn flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite";
             }
         });
     }

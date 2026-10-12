@@ -21,9 +21,7 @@ const BusinessView = {
                         </p>
 
                         <div class="mt-8 flex flex-wrap items-center gap-3">
-                            <button onclick="App.openBusinessInquiry()" class="h-12 px-6 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-xs transition shadow-sm">
-                                14 gün pulsuz yoxlayın
-                            </button>
+                            ${ZeyvoUI.button({ label: "14 gün pulsuz yoxlayın", onClick: "App.openBusinessInquiry()", size: "lg" })}
                             <button onclick="App.openBusinessInquiry()" class="h-12 px-6 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition">
                                 Mütəxəssis zəngi sifariş et
                             </button>
@@ -65,21 +63,15 @@ const BusinessView = {
                 </div>
 
                 <!-- Registration Form Section -->
-                <div class="p-8 sm:p-12 rounded-4xl bg-white border border-tbank-border/80 shadow-tbank max-w-2xl mx-auto">
+                <div id="businessInquiryForm" class="p-8 sm:p-12 rounded-4xl bg-white border border-tbank-border/80 shadow-tbank max-w-2xl mx-auto">
                     <h2 class="text-2xl font-black tracking-[-0.04em] text-tbank-graphite text-center">
                         Biznesinizi indi qoşun
                     </h2>
                     <p class="text-xs text-slate-500 text-center mt-1 font-medium">Qeydiyyatdan keçin, komandamız sistemi 1 saat ərzində salonunuza quraşdırsın</p>
 
                     <div class="mt-6 space-y-3 text-xs font-semibold">
-                        <div>
-                            <label class="block text-slate-500 mb-1">Salon və ya obyektin adı *</label>
-                            <input id="bizPageName" type="text" placeholder="Məs: Diamond Beauty Studio" class="w-full h-11 px-3.5 rounded-xl border border-tbank-border outline-none font-bold" />
-                        </div>
-                        <div>
-                            <label class="block text-slate-500 mb-1">Əlaqədar şəxsin adı *</label>
-                            <input id="bizPagePerson" type="text" placeholder="Adınız və soyadınız" class="w-full h-11 px-3.5 rounded-xl border border-tbank-border outline-none font-bold" />
-                        </div>
+                        ${ZeyvoUI.textField({ id: 'bizPageName', label: 'Salon və ya obyektin adı', placeholder: 'Məs: Diamond Beauty Studio', required: true })}
+                        ${ZeyvoUI.textField({ id: 'bizPagePerson', label: 'Əlaqədar şəxsin adı', placeholder: 'Adınız və soyadınız', required: true })}
                         <div>
                             <label class="block text-slate-500 mb-1">Telefon nömrəniz (WhatsApp) *</label>
                             <div class="h-11 bg-white rounded-xl border border-tbank-border flex items-center overflow-hidden focus-within:border-tbank-graphite transition">
@@ -96,7 +88,7 @@ const BusinessView = {
                                     </span>
                                     <span class="text-xs font-bold text-tbank-graphite tracking-tight">+994</span>
                                 </div>
-                                <input id="bizPagePhone" type="tel" maxlength="15" placeholder="(50) 123-45-67" oninput="App.formatAzPhone(this)" class="w-full h-full px-3.5 bg-transparent font-bold outline-none" />
+                                <input id="bizPagePhone" type="tel" maxlength="15" placeholder="(50) 000-00-00" oninput="App.formatAzPhone(this)" class="w-full h-full px-3.5 bg-transparent font-bold outline-none" />
                             </div>
                         </div>
                         <button onclick="BusinessView.submitApplication()" class="w-full h-12 mt-3 rounded-xl bg-tbank-graphite hover:bg-tbank-graphiteHover text-white font-extrabold text-xs transition shadow-sm">
@@ -109,13 +101,20 @@ const BusinessView = {
     },
     submitApplication: function() {
         const name = document.getElementById('bizPageName').value.trim();
+        const person = document.getElementById('bizPagePerson').value.trim();
         const phone = document.getElementById('bizPagePhone').value.trim();
-        if (!name || !phone) {
+        if (!name || !person || App.getCleanAzPhone(phone).length < 9) {
             App.showToast("Zəhmət olmasa xanaları doldurun");
             return;
         }
+        let applications;
+        try { applications = JSON.parse(localStorage.getItem('zeyvo_business_inquiries_v1') || '[]'); }
+        catch (e) { applications = []; }
+        applications.unshift({ id: Date.now(), name, person, phone, createdAt: new Date().toISOString() });
+        localStorage.setItem('zeyvo_business_inquiries_v1', JSON.stringify(applications));
         App.showToast("Müraciətiniz qəbul edildi! Yaxın zamanda əlaqə saxlayacağıq.");
         document.getElementById('bizPageName').value = '';
+        document.getElementById('bizPagePerson').value = '';
         document.getElementById('bizPagePhone').value = '';
     },
     afterRender: function() {}

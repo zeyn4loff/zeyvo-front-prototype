@@ -2,6 +2,26 @@
 // HOME VIEW: MOBILE-FIRST COMPACT SWIPE RAILS & DYNAMIC VIEWS
 // ========================================================
 const HomeView = {
+    renderCategoryIcon: function(categoryId) {
+        const paths = {
+            beauty: '<circle cx="8" cy="8" r="3"/><path d="M8 11v8M5 16h6M16 11a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm2-2 3-3m-3 0h3v3"/>',
+            health: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/><path d="M7 12h3l1.5-3 2 6 1.5-3h2"/>',
+            auto: '<path d="m5 11 1.5-5h11l1.5 5M3 11h18v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z"/><circle cx="7" cy="14" r="1.5"/><circle cx="17" cy="14" r="1.5"/>',
+            entertainment: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="m15 9 6-6m-3 0h3v3"/>',
+            services: '<rect x="3" y="7" width="18" height="13" rx="3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18M10 13v2h4v-2"/>',
+            education: '<path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11.5V17c2.5 2 9.5 2 12 0v-5.5M22 9v6"/>',
+            rent: '<path d="M4 8.5 12 4l8 4.5V20H4V8.5Z"/><path d="M8 20v-7h8v7M9 9h6"/>',
+            other: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+            sport: '<path d="m6.5 6.5 11 11M5 9 3 7l4-4 2 2m6 14 2 2 4-4-2-2M8 4l2 2m8 8 2 2M4 8l2 2m8 8 2 2"/>',
+            animals: '<path d="M12 12c-2.4 0-4.5 2-4.5 4.5S9.6 20 12 20s4.5-1 4.5-3.5S14.4 12 12 12Z"/><ellipse cx="5.5" cy="10" rx="2" ry="2.5"/><ellipse cx="18.5" cy="10" rx="2" ry="2.5"/><ellipse cx="9.5" cy="5.5" rx="1.8" ry="2.2"/><ellipse cx="14.5" cy="5.5" rx="1.8" ry="2.2"/>',
+            restaurants: '<path d="M7 3v7a3 3 0 0 1-3 3V3m3 0v18M18 3v18m0-10a3 3 0 0 0 3-3V3"/>',
+            style: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3M8 10h3M8 14h3"/>',
+            lawyers: '<path d="M12 3v18M4 7h16M7 21h10M4 7l-3 7h6L4 7Zm16 0-3 7h6l-3-7Z"/>'
+        };
+        const content = paths[categoryId] || paths.other;
+        return `<span class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/80 text-tbank-graphite flex items-center justify-center shrink-0"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">${content}</svg></span>`;
+    },
+
     render: function() {
         const activeCat = ZeyvoData.topCategories.find(c => c.id === App.currentTopCategory) || ZeyvoData.topCategories[0];
 
@@ -13,16 +33,16 @@ const HomeView = {
 
             <!-- Sub-navigation Bar (Azerbaijani) -->
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar touch-snap-x py-1 mb-5 -mx-4 px-4 sm:mx-0 sm:px-0">
-                <button onclick="App.selectSubcategory('all')" class="h-8 sm:h-9 px-4 rounded-xl bg-tbank-graphite text-white font-extrabold text-xs shadow-sm flex items-center gap-1.5 shrink-0">
+                <button onclick="App.openRecommended()" class="h-8 sm:h-9 px-4 rounded-xl bg-tbank-graphite text-white font-extrabold text-xs shadow-sm flex items-center gap-1.5 shrink-0">
                     <span>Tövsiyə olunan</span>
                 </button>
                 <a href="#/catalog/${activeCat.id}" class="h-8 sm:h-9 px-4 rounded-xl bg-black/[0.05] hover:bg-black/[0.08] text-slate-700 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
                     <span>Kataloq</span>
                 </a>
-                <a href="#/catalog" class="h-8 sm:h-9 px-4 rounded-xl bg-black/[0.05] hover:bg-black/[0.08] text-slate-700 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
+                <button onclick="App.openOffers()" class="h-8 sm:h-9 px-4 rounded-xl bg-black/[0.05] hover:bg-black/[0.08] text-slate-700 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
                     <span>Təkliflər</span>
-                </a>
-                <button onclick="App.showOnMap(); Router.navigate('/catalog')" class="h-8 sm:h-9 px-4 rounded-xl bg-black/[0.05] hover:bg-black/[0.08] text-slate-700 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
+                </button>
+                <button onclick="App.showOnMap()" class="h-8 sm:h-9 px-4 rounded-xl bg-black/[0.05] hover:bg-black/[0.08] text-slate-700 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
                     <span>Xəritədə</span>
                 </button>
                 <button onclick="App.openFavoritesModal()" class="h-8 sm:h-9 px-4 rounded-xl bg-black/[0.05] hover:bg-black/[0.08] text-slate-700 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
@@ -37,9 +57,9 @@ const HomeView = {
 
             <!-- Categories Section (5-column Photo Cards Grid) -->
             <section class="mb-7 sm:mb-9">
-                <div class="flex items-center justify-between mb-3.5">
+                <div class="mb-3.5">
                     <div>
-                        <div class="flex items-center gap-2.5">
+                        <div class="flex flex-wrap items-center gap-2">
                             <h2 class="text-xl sm:text-2xl font-black text-tbank-graphite tracking-tight">
                                 Kateqoriyalar
                             </h2>
@@ -52,10 +72,6 @@ const HomeView = {
                         </p>
                     </div>
 
-                    <a id="catalogFilterLink" href="#/catalog/${activeCat.id}" class="text-xs font-bold text-tbank-graphite hover:underline flex items-center gap-1 group shrink-0">
-                        <span>Bütün filtrlərlə bax</span>
-                        <span class="group-hover:translate-x-0.5 transition-transform font-bold">→</span>
-                    </a>
                 </div>
 
 
@@ -144,17 +160,16 @@ const HomeView = {
 
     renderCategoryCard: function(cat, isActive) {
         const activeClass = isActive 
-            ? `${cat.activeBg || 'bg-pink-500'} text-white shadow-md border border-transparent` 
+            ? 'bg-tbank-yellow text-tbank-graphite shadow-md border border-tbank-yellow ring-2 ring-tbank-graphite/10'
             : 'bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 shadow-sm';
             
-        const iconColor = isActive ? 'text-white' : (cat.color || 'text-slate-600');
-        const titleColor = isActive ? 'text-white' : (cat.color || 'text-slate-600');
+        const titleColor = 'text-tbank-graphite';
 
         return `
             <div onclick="App.selectTopCategory('${cat.id}')" 
-                 class="cat-card touch-snap-start shrink-0 w-[84px] sm:w-auto cursor-pointer rounded-2xl p-2 sm:p-3 text-center flex flex-col items-center justify-between min-h-[86px] sm:min-h-[96px] relative transition-all duration-200 ${activeClass}">
-                <div class="mt-1 flex items-center justify-center scale-90 sm:scale-100 ${iconColor}">
-                    ${cat.icon}
+                 class="cat-card touch-snap-start shrink-0 w-[84px] sm:w-auto cursor-pointer rounded-2xl p-2 sm:p-3 text-center flex flex-col items-center justify-center gap-2 min-h-[78px] sm:min-h-[96px] relative transition-all duration-200 ${activeClass}">
+                <div class="mt-1 flex items-center justify-center scale-90 sm:scale-100">
+                    ${this.renderCategoryIcon(cat.id)}
                 </div>
                 <div class="mt-1 text-center w-full">
                     <div class="cat-title text-[9.5px] sm:text-xs font-bold truncate ${titleColor}">
@@ -168,19 +183,9 @@ const HomeView = {
     renderDahaCoxCard: function() {
         return `
             <div onclick="App.toggleCategoriesExpand()" 
-                 class="cat-card touch-snap-start shrink-0 w-[84px] sm:w-auto cursor-pointer bg-tbank-graphite hover:bg-black text-white rounded-2xl p-2 sm:p-3 border border-tbank-graphite text-center flex flex-col items-center justify-between min-h-[86px] sm:min-h-[96px] shadow-sm transition-all duration-200 hover:shadow-md">
+                 class="cat-card touch-snap-start shrink-0 w-[84px] sm:w-auto cursor-pointer bg-tbank-graphite hover:bg-black text-white rounded-2xl p-2 sm:p-3 border border-tbank-graphite text-center flex flex-col items-center justify-center gap-2 min-h-[78px] sm:min-h-[96px] shadow-sm transition-all duration-200 hover:shadow-md">
                 <div class="mt-1 flex items-center justify-center scale-90 sm:scale-100">
-                    <div class="grid grid-cols-3 gap-1 w-6 h-6 items-center justify-center">
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                    </div>
+                    <span class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/80 text-tbank-graphite flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="4" height="4" rx="1"/><rect x="10" y="4" width="4" height="4" rx="1"/><rect x="16" y="4" width="4" height="4" rx="1"/><rect x="4" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="16" y="10" width="4" height="4" rx="1"/><rect x="4" y="16" width="4" height="4" rx="1"/><rect x="10" y="16" width="4" height="4" rx="1"/><rect x="16" y="16" width="4" height="4" rx="1"/></svg></span>
                 </div>
                 <div class="mt-1 text-center w-full">
                     <div class="text-[9.5px] sm:text-xs font-bold truncate text-white">
@@ -194,19 +199,9 @@ const HomeView = {
     renderMinimizeCard: function() {
         return `
             <div onclick="App.toggleCategoriesExpand()" 
-                 class="cat-card touch-snap-start shrink-0 w-[84px] sm:w-auto cursor-pointer bg-tbank-graphite hover:bg-black text-white rounded-2xl p-2 sm:p-3 border border-tbank-graphite text-center flex flex-col items-center justify-between min-h-[86px] sm:min-h-[96px] shadow-md transition-all duration-200">
+                 class="cat-card touch-snap-start shrink-0 w-[84px] sm:w-auto cursor-pointer bg-tbank-graphite hover:bg-black text-white rounded-2xl p-2 sm:p-3 border border-tbank-graphite text-center flex flex-col items-center justify-center gap-2 min-h-[78px] sm:min-h-[96px] shadow-md transition-all duration-200">
                 <div class="mt-1 flex items-center justify-center scale-90 sm:scale-100">
-                    <div class="grid grid-cols-3 gap-1 w-6 h-6 items-center justify-center">
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-tbank-yellow rounded-full"></div>
-                    </div>
+                    <span class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/80 text-tbank-graphite flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="4" height="4" rx="1"/><rect x="10" y="4" width="4" height="4" rx="1"/><rect x="16" y="4" width="4" height="4" rx="1"/><rect x="4" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="16" y="10" width="4" height="4" rx="1"/><path d="m7 18 2 2 4-4"/><path d="M16 18h4"/></svg></span>
                 </div>
                 <div class="mt-1 text-center w-full">
                     <div class="text-[9.5px] sm:text-xs font-bold truncate text-white">

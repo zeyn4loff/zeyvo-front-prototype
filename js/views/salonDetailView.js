@@ -2,9 +2,66 @@
 // SALON DETAIL VIEW (MOBILE FIRST + DIKIDI / FINTECH HYBRID)
 // ========================================================
 const SalonDetailView = {
+    renderUserReviews: function(salonId) {
+        let reviews = [];
+        try {
+            reviews = JSON.parse(localStorage.getItem('zeyvo_user_reviews_v1') || '[]')
+                .filter(review => Number(review.salonId) === Number(salonId));
+        } catch (e) {}
+        const safe = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+        return reviews.map(review => {
+            const stars = Array.from({ length: 5 }, (_, index) => `<svg class="w-3 h-3 ${index < Number(review.rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('');
+            return `<div class="p-4 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-sm space-y-2"><div class="flex items-center justify-between gap-2"><div><div class="font-extrabold text-xs text-tbank-graphite">${safe(review.userName)}</div><div class="text-[10px] text-slate-400">${safe(review.date)}</div></div><div class="flex gap-0.5">${stars}</div></div><p class="text-xs text-slate-600 leading-relaxed font-medium">${safe(review.text)}</p></div>`;
+        }).join('');
+    },
+
+    renderWorkingHours: function(schedule) {
+        const days = [
+            { key: 'mon', label: 'Bazar ertəsi' },
+            { key: 'tue', label: 'Çərşənbə axşamı' },
+            { key: 'wed', label: 'Çərşənbə' },
+            { key: 'thu', label: 'Cümə axşamı' },
+            { key: 'fri', label: 'Cümə' },
+            { key: 'sat', label: 'Şənbə' },
+            { key: 'sun', label: 'Bazar' }
+        ];
+        const groups = [];
+        days.forEach(day => {
+            const value = schedule[day.key] || { isOff: true, open: '09:00', close: '21:00' };
+            const signature = value.isOff ? 'off' : `${value.open}-${value.close}`;
+            const previous = groups[groups.length - 1];
+            if (previous && previous.signature === signature) {
+                previous.end = day;
+            } else {
+                groups.push({ start: day, end: day, signature, value });
+            }
+        });
+        return groups.map(group => {
+            const range = group.start.key === group.end.key
+                ? group.start.label
+                : `${group.start.label} – ${group.end.label}`;
+            return `<div class="flex items-center justify-between gap-3 py-2 border-b border-slate-100 last:border-0"><span class="text-[11px] font-semibold text-slate-500">${range}</span>${group.value.isOff ? '<span class="text-[11px] font-bold text-rose-600">İstirahət günü</span>' : `<span class="text-[11px] font-black text-tbank-graphite whitespace-nowrap">${group.value.open} – ${group.value.close}</span>`}</div>`;
+        }).join('');
+    },
+
     render: function(params) {
-        const id = parseInt(params.id) || 1;
-        const salon = ZeyvoData.salons.find(s => s.id === id) || ZeyvoData.salons[0];
+        const id = Number.parseInt(params.id, 10);
+        const salon = ZeyvoData.salons.find(s => s.id === id);
+        if (!salon) {
+            return `
+                <div class="py-16 px-4 text-center bg-white rounded-3xl border border-tbank-border">
+                    <h1 class="text-xl font-black text-tbank-graphite">Məkan tapılmadı</h1>
+                    <p class="mt-2 text-xs text-slate-500">Bu məkan silinib və ya keçid yanlışdır.</p>
+                    <a href="#/catalog" class="inline-flex mt-5 h-10 px-5 items-center rounded-xl bg-tbank-yellow text-tbank-graphite text-xs font-black">Kataloqa qayıt</a>
+                </div>`;
+        }
+        const workingSchedule = App.getSalonSchedule(salon);
+        const openStatus = App.getSalonOpenStatus(salon);
+        const contact = App.getSalonContact(salon);
+        const phoneDigits = String(contact.phone || '').replace(/\D/g, '');
+        const whatsappDigits = String(contact.whatsapp || contact.phone || '').replace(/\D/g, '');
+        const instagramUrl = contact.instagram ? (String(contact.instagram).startsWith('http') ? contact.instagram : `https://instagram.com/${String(contact.instagram).replace(/^@/, '')}`) : 'https://instagram.com';
+        const facebookUrl = contact.facebook ? (String(contact.facebook).startsWith('http') ? contact.facebook : `https://facebook.com/${contact.facebook}`) : 'https://facebook.com';
         
         let salonMasters = ZeyvoData.masters.filter(m => m.salonId === salon.id);
         if (salonMasters.length === 0) {
@@ -15,7 +72,7 @@ const SalonDetailView = {
         }
 
         return `
-            <div class="space-y-4 sm:space-y-6 pb-20 sm:pb-6">
+            <div class="space-y-4 sm:space-y-6 pb-2 sm:pb-6">
                 <!-- Breadcrumbs & Mobile Back Navigation -->
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
@@ -33,16 +90,14 @@ const SalonDetailView = {
                     </div>
 
                     <!-- Mobile Favorite Button in top bar -->
-                    <button onclick="App.toggleFavorite(${salon.id}, 'salon', event)" class="fav-btn-salon-${salon.id} sm:hidden w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 shadow-xs transition active:scale-90 shrink-0" title="Seçilmişlər">
-                        <svg class="w-4 h-4 ${App.isFavorite('salon', salon.id) ? 'text-rose-500 fill-current' : 'fill-none stroke-current'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    </button>
+                    ${MarketplaceUI.favoriteButton({ id: salon.id, type: 'salon', variant: 'mobile' })}
                 </div>
 
                 <!-- 1. Top Header Card (Mobile First) -->
                 <div class="bg-white rounded-3xl p-5 sm:p-7 border border-tbank-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
-                    <div class="flex items-start gap-4">
+                    <div class="flex flex-col sm:flex-row items-start gap-4 min-w-0 flex-1">
                         <!-- Salon Logo Badge -->
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 border border-tbank-border flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                        <div class="w-full h-36 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 border border-tbank-border flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
                             <img src="${salon.image}" alt="${salon.name}" class="w-full h-full object-cover" />
                         </div>
 
@@ -50,18 +105,20 @@ const SalonDetailView = {
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
                                 <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-tbank-graphite">${salon.name}</h1>
-                                <span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-extrabold border border-emerald-200">Açıqdır</span>
+                                <span class="px-2 py-0.5 rounded-lg ${openStatus.isOpen ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'} text-[10px] font-extrabold border">${openStatus.label}</span>
                             </div>
                             <p class="text-xs text-slate-500 font-medium mt-1 truncate"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0 inline-block -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> ${salon.location}</p>
 
                             <div class="flex flex-wrap items-center gap-3 mt-2 text-xs">
-                                <a href="tel:+994125002026" class="flex items-center gap-1 text-slate-600 hover:text-tbank-graphite font-semibold">
+                                <a href="tel:+${phoneDigits}" class="flex items-center gap-1 text-slate-600 hover:text-tbank-graphite font-semibold">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                                    <span>+994 (12) 500-20-26</span>
+                                    <span>${contact.phone || '+994 (12) 500-20-26'}</span>
                                 </a>
-                                <a href="https://instagram.com" target="_blank" class="flex items-center gap-1 text-rose-600 hover:underline font-semibold">
-                                    <span>@${salon.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}</span>
-                                </a>
+                                <div class="flex items-center gap-1.5" aria-label="Sosial şəbəkələr">
+                                    <a href="${instagramUrl}" target="_blank" aria-label="Instagram" title="Instagram" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+                                    <a href="${facebookUrl}" target="_blank" aria-label="Facebook" title="Facebook" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M14 8h3V4.5c-.5-.1-1.8-.2-3.4-.2-3.3 0-5.6 2-5.6 5.8V13H4v4h4v7h5v-7h3.3l.7-4H13v-2.5C13 9.3 13.3 8 14 8Z"/></svg></a>
+                                    <a href="https://wa.me/${whatsappDigits}" target="_blank" aria-label="WhatsApp" title="WhatsApp" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.2A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 8.5c.5 3 2 4.5 5 5"/></svg></a>
+                                </div>
                             </div>
 
                             <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-2.5">
@@ -70,21 +127,13 @@ const SalonDetailView = {
                                     <div class="flex text-amber-400 gap-0.5"><svg class="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
                                     <span class="text-xs text-slate-400 font-medium">(${salon.reviewsCount})</span>
                                 </div>
-                                <span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 text-[10px] font-black border border-amber-200">
-                                    <svg class="w-3 h-3 text-amber-600 shrink-0 inline-block mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1h10v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34M18 4H6v7a6 6 0 0 0 12 0V4Z"/></svg>Zeyvo Awards
-                                </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Right Action Buttons (Desktop buttons) -->
                     <div class="hidden sm:flex items-center gap-2 shrink-0">
-                        <button onclick="App.toggleFavorite(${salon.id}, 'salon', event)" title="Sevimlilər" class="fav-btn-salon-${salon.id} w-10 h-10 rounded-xl border border-tbank-border hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-rose-500 transition active:scale-90">
-                            <svg class="w-4 h-4 ${App.isFavorite('salon', salon.id) ? 'text-rose-500 fill-current' : 'fill-none stroke-current'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </button>
-                        <button onclick="App.showToast('Çat açılır...')" title="Mesaj" class="w-10 h-10 rounded-xl border border-tbank-border hover:bg-slate-50 flex items-center justify-center text-slate-500 hover:text-black transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        </button>
+                        ${MarketplaceUI.favoriteButton({ id: salon.id, type: 'salon', variant: 'detail' })}
                         <button onclick="App.startBooking(${salon.id})" class="h-10 px-6 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-xs shadow-sm transition">
                             Onlayn yazıl
                         </button>
@@ -130,8 +179,12 @@ const SalonDetailView = {
                                 Xəritədə bax →
                             </button>
                         </div>
-                        <div class="mt-2 text-xs text-slate-500 font-medium">
-                            İş qrafiki: <span class="font-bold text-tbank-graphite">${salon.workHours}</span>
+                        <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5">
+                            <div class="flex items-center gap-2 pb-1.5 border-b border-slate-200/80">
+                                <svg class="w-4 h-4 text-tbank-graphite" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
+                                <h3 class="text-xs font-black text-tbank-graphite">İş saatları</h3>
+                            </div>
+                            ${this.renderWorkingHours(workingSchedule)}
                         </div>
                     </div>
                 </div>
@@ -263,13 +316,12 @@ const SalonDetailView = {
                                 </div>
                             </div>
 
-                            <button onclick="App.handleReviewClick()" class="mt-4 w-full h-9 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-xs shadow-sm transition">
-                                Rəy bildir
-                            </button>
+                            ${ZeyvoUI.button({ label: "Rəy bildir", onClick: `App.handleReviewClick(${salon.id})`, size: "sm", fullWidth: true, className: "mt-4" })}
                         </div>
 
                         <!-- Reviews List -->
-                        <div class="md:col-span-8 space-y-3">
+                        <div id="salonReviewsList" class="md:col-span-8 space-y-3">
+                            ${this.renderUserReviews(salon.id)}
                             <div class="p-4 rounded-2xl border border-tbank-border bg-white shadow-sm space-y-2">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2">

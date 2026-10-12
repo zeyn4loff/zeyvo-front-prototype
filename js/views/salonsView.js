@@ -10,8 +10,8 @@ const SalonsView = {
         App.currentSubcategory = subId;
 
         const activeCat = ZeyvoData.topCategories.find(c => c.id === catId) || ZeyvoData.topCategories[0];
-        const activeSub = activeCat.subcategories.find(s => s.id === subId) || activeCat.subcategories[0];
-        const isAllSub = (!activeSub || activeSub.id === 'all');
+        const isAllSub = subId === 'all';
+        const activeSub = isAllSub ? null : (activeCat.subcategories.find(s => s.id === subId) || null);
 
         const pageTitle = isAllSub 
             ? `${activeCat.azName} — Bakı` 
@@ -39,7 +39,7 @@ const SalonsView = {
                 <div class="bg-white p-4 sm:p-6 rounded-3xl border border-tbank-border/80 shadow-sm space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-tbank-graphite">
                                     ${pageTitle}
                                 </h1>
@@ -52,12 +52,12 @@ const SalonsView = {
 
                         <!-- Mobile Filter Button (Quick Trigger) -->
                         <div class="lg:hidden flex items-center gap-2">
-                            <button onclick="App.openFilterModal()" class="flex-1 h-9 px-4 rounded-xl bg-tbank-graphite text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                            <button onclick="App.openFilterModal()" class="h-9 min-w-[108px] px-4 rounded-xl bg-tbank-graphite text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
                                 <span>Filtrlər</span>
                                 <span id="mobileActiveFiltersCount" class="w-4 h-4 rounded-full bg-white text-tbank-graphite text-[10px] font-black inline-flex items-center justify-center hidden">0</span>
                             </button>
-                            <select onchange="App.sortCatalog(this.value)" class="h-9 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-tbank-graphite outline-none">
+                            <select onchange="App.sortCatalog(this.value)" class="min-w-0 flex-1 h-9 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-tbank-graphite outline-none">
                                 <option value="default">Sırala</option>
                                 <option value="rating">Reytinqə görə</option>
                                 <option value="price">Qiymətə görə</option>
@@ -167,15 +167,11 @@ const SalonsView = {
                             </div>
                         </div>
 
-                        <!-- Checkboxes: VIP & Awards -->
+                        <!-- VIP filter -->
                         <div class="space-y-2.5 pt-1 border-t border-slate-100">
                             <label class="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-tbank-graphite select-none">
                                 <input type="checkbox" id="filterVipDesktop" onchange="App.toggleFilterParam('vip', this.checked)" class="w-4 h-4 rounded border-slate-300 accent-amber-400">
                                 <span>VIP status</span>
-                            </label>
-                            <label class="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-tbank-graphite select-none">
-                                <input type="checkbox" id="filterAwardsDesktop" onchange="App.toggleFilterParam('awards', this.checked)" class="w-4 h-4 rounded border-slate-300 accent-amber-400">
-                                <span>Zeyvo Mükafat Qalibləri</span>
                             </label>
                         </div>
 
@@ -218,10 +214,7 @@ const SalonsView = {
             <!-- Mobile Bottom Sheet Filter Modal -->
             <div id="catalogMobileFilterModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 modal-fade">
                 <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 mobile-sheet space-y-4 max-h-[85vh] overflow-y-auto">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <div class="font-black text-base text-tbank-graphite">Filtrlər</div>
-                        <button onclick="App.closeFilterModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center" title="Bağla"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-                    </div>
+                    ${ZeyvoUI.modalHeader({ title: 'Filtrlər', onClose: 'App.closeFilterModal()' })}
 
                     <!-- Search -->
                     <div>
@@ -234,10 +227,6 @@ const SalonsView = {
                         <label class="flex items-center gap-2.5 text-xs font-bold text-tbank-graphite">
                             <input type="checkbox" id="filterVipMobile" onchange="App.toggleFilterParam('vip', this.checked)" class="w-4 h-4 rounded border-slate-300 accent-amber-400">
                             <span>VIP status</span>
-                        </label>
-                        <label class="flex items-center gap-2.5 text-xs font-bold text-tbank-graphite">
-                            <input type="checkbox" id="filterAwardsMobile" onchange="App.toggleFilterParam('awards', this.checked)" class="w-4 h-4 rounded border-slate-300 accent-amber-400">
-                            <span>Zeyvo Mükafat Qalibləri</span>
                         </label>
 
                     </div>
@@ -260,9 +249,7 @@ const SalonsView = {
                     </div>
 
                     <div class="pt-4">
-                        <button onclick="App.closeFilterModal()" class="w-full h-11 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-xs shadow-sm transition">
-                            Tətbiq et və nəticələrə bax
-                        </button>
+                        ${ZeyvoUI.button({ label: "Tətbiq et və nəticələrə bax", onClick: "App.closeFilterModal()", size: "lg", fullWidth: true })}
                     </div>
 
                 </div>

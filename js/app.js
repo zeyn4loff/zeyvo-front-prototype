@@ -139,6 +139,7 @@ const App = {
         this.updateBadge();
         this.updateFavoritesBadge();
         Router.init();
+        ZeyvoUI.observeModals();
 
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
@@ -341,79 +342,15 @@ const App = {
         if (countEl) countEl.textContent = `${filtered.length} məkan`;
 
         if (filtered.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-full p-10 text-center bg-white rounded-3xl border border-tbank-border">
-                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2"><svg class="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
-                    <div class="font-extrabold text-sm text-tbank-graphite">Bu kriteriyada nəticə tapılmadı</div>
-                    <div class="text-xs text-slate-400 mt-1">Digər alt-kateqoriyanı seçin və ya axtarışı sıfırlayın</div>
-                    <button onclick="App.selectSubcategory('all')" class="mt-4 px-4 py-2 rounded-xl bg-tbank-graphite text-white font-bold text-xs">Bütün alt-xidmətləri göstər</button>
-                </div>
-            `;
+            grid.innerHTML = ZeyvoUI.emptyState({
+                title: 'Bu kriteriyada nəticə tapılmadı',
+                description: 'Digər alt-kateqoriyanı seçin və ya axtarışı sıfırlayın',
+                action: ZeyvoUI.button({ label: 'Bütün alt-xidmətləri göstər', variant: 'secondary', onClick: "App.selectSubcategory('all')", className: 'mt-4' })
+            });
             return;
         }
 
-        grid.innerHTML = filtered.map(salon => `
-            <article class="product-card bg-white rounded-3xl border border-tbank-border/80 overflow-hidden flex flex-col justify-between">
-                <!-- Photo Header -->
-                <div class="relative h-44 overflow-hidden bg-slate-100 cursor-pointer" onclick="Router.navigate('/salon/${salon.id}')">
-                    <img src="${salon.image}" alt="${salon.name}" class="w-full h-full object-cover" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-
-                    <div class="absolute top-3 left-3 flex items-center gap-1.5">
-                        ${salon.badge ? `<span class="px-2.5 py-1 rounded-lg bg-tbank-graphite text-tbank-yellow text-[10px] font-black tracking-wide">${salon.badge}</span>` : ''}
-                        ${salon.discount ? `<span class="px-2 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-extrabold">${salon.discount}</span>` : ''}
-                    </div>
-
-                    <button onclick="App.toggleFavorite(${salon.id}, 'salon', event)" class="fav-btn-salon-${salon.id} absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center shadow-md transition transform active:scale-90 z-10" title="Seçilmişlərə əlavə et">
-                        <svg class="w-4 h-4 ${this.isFavorite('salon', salon.id) ? 'text-rose-500 fill-current' : 'text-slate-600 fill-none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    </button>
-
-                    <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-                        <span class="text-[11px] font-semibold text-white/90 truncate max-w-[200px]">${salon.location}</span>
-                        <span class="px-2 py-0.5 rounded-md bg-white text-tbank-graphite font-black text-[11px] flex items-center gap-1"><svg class="w-3 h-3 text-amber-500 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${salon.rating}</span>
-                    </div>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                        <a href="#/salon/${salon.id}" class="block group">
-                            <h3 class="font-black text-base text-tbank-graphite group-hover:text-black transition">${salon.name}</h3>
-                            <div class="text-xs text-slate-400 mt-0.5 font-medium">${salon.tag} • ${salon.reviewsCount} rəy</div>
-                        </a>
-
-                        <div class="mt-4 space-y-2 pt-3 border-t border-tbank-border">
-                            ${salon.services.slice(0, 2).map(s => `
-                                <div class="flex items-center justify-between text-xs">
-                                    <span class="text-slate-600 truncate max-w-[200px] font-medium">${s.name}</span>
-                                    <span class="font-extrabold text-tbank-graphite shrink-0">${s.price} ₼</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="mt-5 pt-3 border-t border-tbank-border">
-                        <div class="text-[11px] font-bold text-slate-500 mb-2">Bu gün boş vaxtlar:</div>
-                        <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                            ${salon.slots.map(slot => `
-                                <button onclick="App.startBooking(${salon.id}, '${slot}')" class="shrink-0 px-2.5 py-1 rounded-lg bg-tbank-bg hover:bg-tbank-yellow text-tbank-graphite text-[11px] font-bold transition">
-                                    ${slot}
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <div class="mt-3.5 flex items-center gap-2">
-                            <button onclick="App.startBooking(${salon.id})" class="flex-1 h-10 rounded-xl bg-tbank-graphite hover:bg-tbank-graphiteHover text-white text-xs font-bold transition">
-                                Yazıl
-                            </button>
-                            <a href="#/salon/${salon.id}" class="h-10 px-3.5 rounded-xl border border-tbank-border hover:bg-tbank-bg text-tbank-graphite flex items-center justify-center transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        `).join('');
+        grid.innerHTML = filtered.map(salon => MarketplaceUI.salonCard(salon)).join('');
     },
 
     renderMasters: function() {
@@ -425,36 +362,7 @@ const App = {
             filtered = ZeyvoData.masters.slice(0, 4);
         }
 
-        grid.innerHTML = filtered.slice(0, 4).map(m => `
-            <div class="p-3.5 rounded-2xl bg-white border border-tbank-border/70 shadow-sm flex items-center gap-3 hover:shadow-md transition">
-                <a href="#/master/${m.id}" class="shrink-0 group">
-                    <img src="${m.photo}" alt="${m.name}" class="w-12 h-12 rounded-xl object-cover group-hover:opacity-90 transition" />
-                </a>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between gap-1">
-                        <a href="#/master/${m.id}" class="font-extrabold text-xs sm:text-sm text-tbank-graphite truncate hover:underline">${m.name}</a>
-                        <div class="flex items-center gap-1 shrink-0">
-                            <span class="text-[10px] font-black text-tbank-graphite bg-tbank-bg px-1.5 py-0.5 rounded flex items-center gap-0.5"><svg class="w-2.5 h-2.5 text-amber-500 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${m.rating}</span>
-                            <button onclick="App.toggleFavorite(${m.id}, 'master', event)" class="fav-btn-master-${m.id} p-1 text-slate-400 hover:text-rose-500 transition active:scale-90" title="Seçilmişlər">
-                                <svg class="w-3.5 h-3.5 ${this.isFavorite('master', m.id) ? 'text-rose-500 fill-current' : 'fill-none stroke-current'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="text-[11px] text-slate-500 truncate mt-0.5">${m.title}</div>
-                    <div class="text-[10px] text-slate-400 truncate">
-                        <a href="#/salon/${m.salonId}" class="hover:underline">${m.salonName}</a>
-                    </div>
-                    <div class="mt-1.5 flex items-center justify-between">
-                        <a href="#/master/${m.id}" class="text-[11px] font-bold text-slate-500 hover:text-tbank-graphite">
-                            Profilə bax
-                        </a>
-                        <button onclick="App.bookMaster('${m.name}', '${m.salonName}')" class="text-[11px] font-black text-tbank-graphite hover:underline">
-                            Qəbula yazıl →
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        grid.innerHTML = filtered.slice(0, 4).map(m => MarketplaceUI.masterCard(m, 'compact')).join('');
     },
 
     sortSalons: function(order) {
@@ -530,16 +438,120 @@ const App = {
     },
 
     // Booking Wizard
+    getBookingBusinessContext: function(salon) {
+        if (!salon) return null;
+        if (salon.businessId && salon.branchId) {
+            return { businessId: salon.businessId, branchId: salon.branchId };
+        }
+
+        // Demo marketplace listings connected to the matching CRM tenants/branches.
+        const connectedSalons = {
+            1: { businessId: 'biz_baku_beauty', branchId: 'br_bbs_1' },
+            4: { businessId: 'biz_baku_beauty', branchId: 'br_bbs_2' },
+            104: { businessId: 'biz_baku_beauty', branchId: 'br_bbs_3' },
+            2: { businessId: 'biz_grand_barber', branchId: 'br_gbl_1' },
+            7: { businessId: 'biz_dent_estet', branchId: 'br_de_1' }
+        };
+        return connectedSalons[salon.id] || null;
+    },
+
+    getSalonSchedule: function(salon) {
+        const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const normalizeTime = (value, fallback) => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '').trim())
+            ? String(value).trim() : fallback;
+        const parseHours = (value) => {
+            const text = String(value || '');
+            if (/24\s*\/\s*7/.test(text)) return { open: '00:00', close: '23:59', alwaysOpen: true };
+            const times = text.match(/([01]\d|2[0-3]):[0-5]\d/g) || [];
+            return { open: times[0] || '09:00', close: times[1] || '21:00', alwaysOpen: false };
+        };
+
+        const context = this.getBookingBusinessContext(salon);
+        let crmRecord = null;
+        if (context) {
+            try {
+                const businesses = JSON.parse(localStorage.getItem('zeyvo_user_businesses_v3') || '[]');
+                const business = Array.isArray(businesses) ? businesses.find(item => item.id === context.businessId) : null;
+                if (business) {
+                    crmRecord = business.type === 'individual'
+                        ? business
+                        : (business.branches || []).find(branch => branch.id === context.branchId) || null;
+                }
+            } catch (e) {}
+        }
+
+        const fallbackHours = parseHours(crmRecord?.hours || salon?.workHours || '09:00 - 21:00');
+        const crmDays = crmRecord?.scheduleDays && typeof crmRecord.scheduleDays === 'object'
+            ? crmRecord.scheduleDays : null;
+        const schedule = {};
+        dayKeys.forEach(key => {
+            const source = crmDays?.[key];
+            const defaultOff = fallbackHours.alwaysOpen ? false : key === 'sun';
+            schedule[key] = {
+                isOff: source ? !!source.isOff : defaultOff,
+                open: normalizeTime(source?.open, fallbackHours.open),
+                close: normalizeTime(source?.close, fallbackHours.close)
+            };
+        });
+        return schedule;
+    },
+
+    getSalonContact: function(salon) {
+        const fallback = {
+            phone: salon?.phone || '+994125002026',
+            whatsapp: salon?.whatsapp || '+994125002026',
+            instagram: salon?.instagram || '',
+            facebook: salon?.facebook || ''
+        };
+        const context = this.getBookingBusinessContext(salon);
+        if (!context) return fallback;
+        try {
+            const businesses = JSON.parse(localStorage.getItem('zeyvo_user_businesses_v3') || '[]');
+            const business = Array.isArray(businesses) ? businesses.find(item => item.id === context.businessId) : null;
+            const record = business?.type === 'individual'
+                ? business
+                : (business?.branches || []).find(branch => branch.id === context.branchId);
+            if (!record) return fallback;
+            return {
+                phone: record.phone || business.phone || fallback.phone,
+                whatsapp: record.whatsapp || record.phone || business.whatsapp || fallback.whatsapp,
+                instagram: record.instagram || business.instagram || fallback.instagram,
+                facebook: record.facebook || business.facebook || fallback.facebook
+            };
+        } catch (e) {
+            return fallback;
+        }
+    },
+
+    getSalonOpenStatus: function(salon, date = new Date()) {
+        const schedule = this.getSalonSchedule(salon);
+        const dayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
+        const day = schedule[dayKey];
+        if (!day || day.isOff) return { isOpen: false, label: 'İstirahət günüdür', dayKey, day };
+        const toMinutes = value => {
+            const [hours, minutes] = String(value || '00:00').split(':').map(Number);
+            return hours * 60 + minutes;
+        };
+        const now = date.getHours() * 60 + date.getMinutes();
+        const open = toMinutes(day.open);
+        const close = toMinutes(day.close);
+        const isOpen = close > open ? now >= open && now < close : now >= open || now < close;
+        return { isOpen, label: isOpen ? 'Açıqdır' : 'Bağlıdır', dayKey, day };
+    },
+
     startBooking: function(salonId, defaultSlot = null, masterName = null, defaultServiceId = null) {
         const salon = ZeyvoData.salons.find(s => s.id === salonId);
-        if (!salon) return;
+        if (!salon) {
+            this.showToast('Məkan tapılmadı. Səhifəni yeniləyib təkrar cəhd edin.');
+            return;
+        }
 
         let master = null;
         if (masterName) {
-            master = ZeyvoData.masters.find(m => m.name === masterName) || null;
+            master = ZeyvoData.masters.find(m => m.name === masterName && m.salonId === salonId) || null;
         }
         if (!master) {
-            master = ZeyvoData.masters.find(m => m.salonId === salonId) || ZeyvoData.masters[0];
+            master = ZeyvoData.masters.find(m => m.salonId === salonId) || null;
         }
 
         const selectedService = (defaultServiceId ? salon.services.find(s => s.id === defaultServiceId) : null) || salon.services[0];
@@ -609,7 +621,13 @@ const App = {
     },
 
     bookMaster: function(masterName, salonName, serviceId = null, slot = null) {
-        const salon = ZeyvoData.salons.find(s => s.name === salonName) || ZeyvoData.salons[0];
+        const master = ZeyvoData.masters.find(m => m.name === masterName);
+        const salon = (master ? ZeyvoData.salons.find(s => s.id === master.salonId) : null)
+            || ZeyvoData.salons.find(s => s.name === salonName);
+        if (!salon) {
+            this.showToast('Mütəxəssisin məkanı tapılmadı.');
+            return;
+        }
         this.startBooking(salon.id, slot, masterName, serviceId);
     },
 
@@ -644,6 +662,25 @@ const App = {
         btn.className = "slot-btn px-3 py-2 rounded-xl text-xs font-bold border transition bg-tbank-graphite text-white border-tbank-graphite";
     },
 
+    getBusinessBookingKey: function(branchId = null) {
+        const targetBranch = branchId || 'br_bbs_1';
+        return targetBranch === 'br_bbs_1'
+            ? 'zeyvo_business_bookings_v3'
+            : `zeyvo_business_bookings_v3__${targetBranch}`;
+    },
+
+    syncBookingStatuses: function() {
+        try {
+            this.bookings.forEach(booking => {
+                if (!booking.branchId) return;
+                const businessBookings = JSON.parse(localStorage.getItem(this.getBusinessBookingKey(booking.branchId)) || '[]');
+                const match = businessBookings.find(item => item.id === `b_online_${booking.id}`);
+                if (match) booking.status = match.status;
+            });
+            localStorage.setItem('zeyvo_user_bookings', JSON.stringify(this.bookings));
+        } catch (e) { console.warn('Booking status sync failed', e); }
+    },
+
     submitBooking: function() {
         const nameInput = document.getElementById('clientName');
         const phoneInput = document.getElementById('clientPhone');
@@ -664,6 +701,29 @@ const App = {
 
         const phone = `+994 ${this.formatDisplayAzPhone(phoneDigits)}`;
 
+        const today = new Date();
+        const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const time = this.currentBooking.time || '12:00';
+        const start = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+        const duration = parseInt(this.currentBooking.service?.duration, 10) || 45;
+        const businessContext = this.getBookingBusinessContext(this.currentBooking.salon);
+        const businessKey = businessContext ? this.getBusinessBookingKey(businessContext.branchId) : null;
+        let businessBookings;
+        try { businessBookings = businessKey ? JSON.parse(localStorage.getItem(businessKey) || '[]') : []; }
+        catch (e) { businessBookings = []; }
+        const conflict = businessBookings.some(b => {
+            if (b.date !== date || b.status === 'Ləğv edildi' || !b.time) return false;
+            if (b.salonId && b.salonId !== this.currentBooking.salon.id) return false;
+            if (b.masterName && b.masterName !== this.currentBooking.master?.name) return false;
+            const bStart = Number(b.time.slice(0, 2)) * 60 + Number(b.time.slice(3, 5));
+            const bDuration = Number(b.durationMinutes) || Math.round(Number(b.durationHours) * 60) || 45;
+            return start < bStart + bDuration && start + duration > bStart;
+        });
+        if (conflict) {
+            this.showToast('Bu saat artıq tutulub. Başqa vaxt seçin.');
+            return;
+        }
+
         const newBooking = {
             id: Date.now(),
             salonId: this.currentBooking.salon?.id || 1,
@@ -671,32 +731,33 @@ const App = {
             masterName: this.currentBooking.master ? this.currentBooking.master.name : null,
             serviceName: this.currentBooking.service ? this.currentBooking.service.name : "Xidmət",
             price: this.currentBooking.service ? this.currentBooking.service.price : 30,
-            time: this.currentBooking.time || "12:00",
-            date: "Bugün",
+            time,
+            date,
+            status: 'Gözlənilir',
+            businessId: businessContext?.businessId || null,
+            branchId: businessContext?.branchId || null,
             clientName: name,
             clientPhone: phone
         };
 
-        this.bookings.unshift(newBooking);
-        localStorage.setItem('zeyvo_user_bookings', JSON.stringify(this.bookings));
-
-        // Sync with Business Appointments queue as pending online appointment
+        // Connected marketplace listings are routed to their own CRM branch.
         try {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const bizBookings = JSON.parse(localStorage.getItem('zeyvo_business_bookings_v3') || '[]');
+            if (!businessKey) throw new Error('UNCONNECTED_MARKETPLACE_LISTING');
+            const bizBookings = businessBookings;
             const bizBooking = {
                 id: 'b_online_' + newBooking.id,
                 clientName: name,
                 phone: phone,
                 service: newBooking.serviceName,
                 serviceId: this.currentBooking.service?.id || '',
-                masterName: newBooking.masterName || 'Samir Əliyev',
-                masterKey: 'samir',
-                date: todayStr,
+                masterName: newBooking.masterName || 'Usta',
+                date,
+                salonId: newBooking.salonId,
+                branchId: newBooking.branchId,
                 time: newBooking.time,
                 startHour: parseInt(newBooking.time.split(':')[0]) || 12,
-                durationMinutes: 45,
-                durationHours: 0.75,
+                durationMinutes: duration,
+                durationHours: duration / 60,
                 price: newBooking.price,
                 status: 'Gözlənilir',
                 source: 'online',
@@ -704,19 +765,37 @@ const App = {
                 note: 'Onlayn müştəri müraciəti (Zeyvo platformasından yazılıb)'
             };
             bizBookings.unshift(bizBooking);
-            localStorage.setItem('zeyvo_business_bookings_v3', JSON.stringify(bizBookings));
-        } catch(e) {}
+            localStorage.setItem(businessKey, JSON.stringify(bizBookings));
+        } catch(e) {
+            if (e.message !== 'UNCONNECTED_MARKETPLACE_LISTING') {
+                this.showToast('Yazılmanı saxlamaq mümkün olmadı. Yenidən cəhd edin.');
+                return;
+            }
+        }
+
+        this.bookings.unshift(newBooking);
+        try {
+            localStorage.setItem('zeyvo_user_bookings', JSON.stringify(this.bookings));
+        } catch (e) {
+            this.bookings.shift();
+            try {
+                if (!businessKey) throw new Error('NO_BUSINESS_SYNC');
+                localStorage.setItem(businessKey, JSON.stringify(businessBookings.filter(b => b.id !== `b_online_${newBooking.id}`)));
+            } catch (_) {}
+            this.showToast('Yazılmanı saxlamaq mümkün olmadı. Yenidən cəhd edin.');
+            return;
+        }
 
         this.updateBadge();
         this.renderUserBookings();
         this.renderProfileBookings();
         this.closeBookingModal();
-        this.showToast("Rezervasiyanız uğurla təsdiqləndi!");
+        this.showToast("Müraciətiniz göndərildi. Təsdiq gözlənilir.");
     },
 
     // Bookings Drawer
     openBookingsModal: function() {
-        if (!this.currentUser) {
+        if (!this.currentUser && (!this.bookings || this.bookings.length === 0)) {
             this.showToast("Yazılarınızı və tarixçənizi görmək üçün hesabınıza daxil olun");
             this.openAuthModal();
             return;
@@ -728,24 +807,21 @@ const App = {
         document.getElementById('bookingsModal').classList.add('hidden');
     },
     renderUserBookings: function() {
+        this.syncBookingStatuses();
         const list = document.getElementById('userBookingsList');
         if (!list) return;
 
         if (this.bookings.length === 0) {
-            list.innerHTML = `
-                <div class="p-8 text-center bg-tbank-bg rounded-2xl">
-                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2"><svg class="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-                    <div class="font-extrabold text-sm text-tbank-graphite">Hələ heç bir rezervasiyanız yoxdur</div>
-                    <div class="text-xs text-slate-400 mt-1">İstədiyiniz xidmət və ya salonu seçib yazılın</div>
-                </div>
-            `;
+            list.innerHTML = ZeyvoUI.emptyState({ title: 'Hələ heç bir rezervasiyanız yoxdur', description: 'İstədiyiniz xidmət və ya salonu seçib yazılın' });
             return;
         }
 
-        list.innerHTML = this.bookings.map(b => `
+        list.innerHTML = this.bookings.map(b => {
+            const confirmed = String(b.status || '').toLowerCase().includes('təsdiq');
+            return `
             <div class="p-4 rounded-2xl border border-tbank-border bg-white shadow-sm flex items-start justify-between gap-3">
                 <div class="min-w-0 flex-1">
-                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-tbank-green text-tbank-graphite mb-1.5">Təsdiqləndi</span>
+                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-tbank-green text-tbank-graphite mb-1.5">${b.status || 'Gözlənilir'}</span>
                     <div class="font-black text-sm text-tbank-graphite truncate">${b.salonName}</div>
                     ${b.masterName ? `<div class="text-[11px] font-bold text-slate-500 mt-0.5 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="truncate">${b.masterName}</span></div>` : ''}
                     <div class="text-xs font-semibold text-slate-600 mt-0.5 truncate">${b.serviceName}</div>
@@ -755,11 +831,29 @@ const App = {
                         <span class="font-extrabold text-tbank-graphite">${b.price} ₼</span>
                     </div>
                 </div>
-                <button onclick="App.cancelBooking(${b.id})" class="text-slate-400 hover:text-rose-600 p-1 text-xs shrink-0 transition" title="Ləğv et">Ləğv et</button>
+                ${confirmed
+                    ? `<a href="tel:+994125002026" class="text-[10px] leading-tight text-center font-bold text-slate-500 hover:text-tbank-graphite shrink-0 max-w-[88px]">Ləğv üçün salonla əlaqə</a>`
+                    : `<button onclick="App.cancelBooking(${b.id})" class="text-slate-400 hover:text-rose-600 p-1 text-xs shrink-0 transition" title="Ləğv et">Ləğv et</button>`}
             </div>
-        `).join('');
+        `}).join('');
     },
     cancelBooking: function(id) {
+        const currentBooking = this.bookings.find(b => b.id === id);
+        if (String(currentBooking?.status || '').toLowerCase().includes('təsdiq')) {
+            this.showToast('Təsdiqlənmiş rezervasiyanı ləğv etmək üçün salonla əlaqə saxlayın');
+            return;
+        }
+        try {
+            const booking = this.bookings.find(b => b.id === id);
+            if (!booking?.branchId) throw new Error('NO_BUSINESS_SYNC');
+            const key = this.getBusinessBookingKey(booking?.branchId);
+            const businessBookings = JSON.parse(localStorage.getItem(key) || '[]');
+            const match = businessBookings.find(b => b.id === `b_online_${id}`);
+            if (match) {
+                match.status = 'Ləğv edildi';
+                localStorage.setItem(key, JSON.stringify(businessBookings));
+            }
+        } catch (e) { console.warn('Booking cancellation sync failed', e); }
         this.bookings = this.bookings.filter(b => b.id !== id);
         localStorage.setItem('zeyvo_user_bookings', JSON.stringify(this.bookings));
         this.updateBadge();
@@ -768,7 +862,7 @@ const App = {
         this.showToast("Yazılma ləğv edildi");
     },
     updateBadge: function() {
-        const count = this.currentUser ? ((this.bookings && this.bookings.length) || 0) : 0;
+        const count = (this.bookings && this.bookings.length) || 0;
         const badge = document.getElementById('bookingCountBadge');
         if (badge) {
             badge.textContent = count;
@@ -1237,6 +1331,7 @@ const App = {
     },
 
     renderProfileBookings: function() {
+        this.syncBookingStatuses();
         const container = document.getElementById('profileBookingsList');
         const badge = document.getElementById('profileBookingsCountBadge');
         if (!container) return;
@@ -1258,12 +1353,14 @@ const App = {
             return;
         }
 
-        container.innerHTML = bookings.map(b => `
+        container.innerHTML = bookings.map(b => {
+            const confirmed = String(b.status || '').toLowerCase().includes('təsdiq');
+            return `
             <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
                         <span class="font-extrabold text-xs text-tbank-graphite truncate">${b.salonName}</span>
-                        <span class="bg-green-100 text-green-800 text-[9px] font-black px-1.5 py-0.2 rounded-full shrink-0">Təsdiqlənib</span>
+                        <span class="bg-green-100 text-green-800 text-[9px] font-black px-1.5 py-0.2 rounded-full shrink-0">${b.status || 'Gözlənilir'}</span>
                     </div>
                     ${b.masterName ? `<div class="text-[11px] font-bold text-slate-600 mt-0.5 truncate flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${b.masterName}</div>` : ''}
                     <div class="text-[11px] text-slate-500 font-medium mt-0.5 truncate">${b.serviceName}</div>
@@ -1272,11 +1369,11 @@ const App = {
                         <span class="font-black text-emerald-600 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>${b.price} AZN</span>
                     </div>
                 </div>
-                <button onclick="App.cancelBooking(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold shrink-0 transition" title="Ləğv et">
-                    Ləğv et
-                </button>
+                ${confirmed
+                    ? `<a href="tel:+994125002026" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] leading-tight text-center font-bold shrink-0 max-w-[96px]">Salonla əlaqə</a>`
+                    : `<button onclick="App.cancelBooking(${b.id})" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold shrink-0 transition" title="Ləğv et">Ləğv et</button>`}
             </div>
-        `).join('');
+        `}).join('');
     },
 
     saveProfileChanges: function() {
@@ -1843,6 +1940,7 @@ const App = {
                     svg.classList.remove('text-rose-500', 'fill-current');
                     svg.classList.add('fill-none');
                 }
+                btn.setAttribute('aria-pressed', String(Boolean(isLiked)));
             }
         });
     },
@@ -2180,13 +2278,68 @@ const App = {
         this._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
     },
 
-    handleReviewClick: function() {
-        if (this.currentUser) {
-            this.showToast("Təşəkkür edirik! Rəyiniz qeydə alındı və yoxlanışdadır. ⭐");
-        } else {
+    handleReviewClick: function(salonId) {
+        if (!this.currentUser) {
+            this.showToast('Rəy yazmaq üçün şəxsi kabinetə daxil olun');
             this.setAuthMode('login');
             this.openAuthModal();
+            return;
         }
+        this.reviewSalonId = Number(salonId) || null;
+        this.reviewRating = 0;
+        const salon = ZeyvoData.salons.find(item => item.id === this.reviewSalonId);
+        const name = document.getElementById('reviewSalonName');
+        const text = document.getElementById('reviewText');
+        const error = document.getElementById('reviewError');
+        if (name) name.textContent = salon?.name || 'Məkan';
+        if (text) text.value = '';
+        if (error) error.classList.add('hidden');
+        this.updateReviewStars();
+        document.getElementById('reviewModal')?.classList.remove('hidden');
+    },
+    closeReviewModal: function() {
+        document.getElementById('reviewModal')?.classList.add('hidden');
+    },
+    setReviewRating: function(rating) {
+        this.reviewRating = Number(rating) || 0;
+        this.updateReviewStars();
+    },
+    updateReviewStars: function() {
+        document.querySelectorAll('[data-review-star]').forEach(button => {
+            const active = Number(button.dataset.reviewStar) <= (this.reviewRating || 0);
+            button.classList.toggle('text-amber-400', active);
+            button.classList.toggle('text-slate-300', !active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    },
+    submitReview: function() {
+        if (!this.currentUser) {
+            this.closeReviewModal();
+            this.openAuthModal();
+            return;
+        }
+        const textInput = document.getElementById('reviewText');
+        const message = (textInput?.value || '').trim();
+        const error = document.getElementById('reviewError');
+        if (!this.reviewRating || message.length < 5) {
+            if (error) {
+                error.textContent = !this.reviewRating ? 'Ulduz sayı seçin' : 'Rəy ən azı 5 simvoldan ibarət olmalıdır';
+                error.classList.remove('hidden');
+            }
+            return;
+        }
+        const reviews = JSON.parse(localStorage.getItem('zeyvo_user_reviews_v1') || '[]');
+        const review = { id: Date.now(), salonId: this.reviewSalonId, rating: this.reviewRating, text: message, userName: this.currentUser.name || 'İstifadəçi', date: new Date().toLocaleDateString('az-AZ') };
+        reviews.unshift(review);
+        localStorage.setItem('zeyvo_user_reviews_v1', JSON.stringify(reviews));
+        const list = document.getElementById('salonReviewsList');
+        if (list) {
+            const safe = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+            const stars = Array.from({ length: 5 }, (_, index) => `<svg class="w-3 h-3 ${index < review.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('');
+            list.insertAdjacentHTML('afterbegin', `<div class="p-4 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-sm space-y-2"><div class="flex items-center justify-between gap-2"><div><div class="font-extrabold text-xs text-tbank-graphite">${safe(review.userName)}</div><div class="text-[10px] text-slate-400">${safe(review.date)}</div></div><div class="flex gap-0.5">${stars}</div></div><p class="text-xs text-slate-600 leading-relaxed font-medium">${safe(review.text)}</p></div>`);
+        }
+        this.closeReviewModal();
+        this.showToast('Rəyiniz əlavə edildi');
     },
 
 // ========================================================
@@ -2291,14 +2444,11 @@ const App = {
 
         // 6. Handle Empty State
         if (combined.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-full p-10 text-center bg-white rounded-3xl border border-slate-200 shadow-sm">
-                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2"><svg class="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
-                    <div class="font-extrabold text-sm text-tbank-graphite">Seçilmiş filtrlər üzrə heç nə tapılmadı</div>
-                    <p class="text-xs text-slate-400 mt-1">Filtrləri təmizləyin və ya axtarış sorğusunu dəyişin</p>
-                    <button onclick="App.resetCatalogFilters()" class="mt-4 px-5 py-2.5 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-xs shadow-sm transition">Filtrləri sıfırla</button>
-                </div>
-            `;
+            grid.innerHTML = ZeyvoUI.emptyState({
+                title: 'Seçilmiş filtrlər üzrə heç nə tapılmadı',
+                description: 'Filtrləri təmizləyin və ya axtarış sorğusunu dəyişin',
+                action: ZeyvoUI.button({ label: 'Filtrləri sıfırla', onClick: 'App.resetCatalogFilters()', className: 'mt-4' })
+            });
             const loadMore = document.getElementById('catalogLoadMoreContainer');
             if (loadMore) loadMore.classList.add('hidden');
             return;
@@ -2313,56 +2463,7 @@ const App = {
         const itemsToShow = combined.slice(0, this.catalogFilter.limit);
 
         // 8. Render Horizontal DIKIDI-style Cards
-        grid.innerHTML = itemsToShow.map(item => `
-            <div class="bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200/90 shadow-sm hover:shadow-md transition flex items-center gap-3 relative group">
-                <!-- Photo Thumbnail -->
-                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 shrink-0 cursor-pointer" 
-                     onclick="${item.type === 'company' ? `Router.navigate('/salon/${item.id}')` : `Router.navigate('/master/${item.id}')`}">
-                    <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                </div>
-
-                <!-- Info -->
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between gap-1">
-                        <h4 class="font-extrabold text-xs sm:text-sm text-tbank-graphite truncate hover:text-black cursor-pointer"
-                            onclick="${item.type === 'company' ? `Router.navigate('/salon/${item.id}')` : `Router.navigate('/master/${item.id}')`}">
-                            ${item.name}
-                        </h4>
-                        <button onclick="App.toggleFavorite(${item.id}, '${item.type}', event)" class="fav-btn-${item.type === 'company' ? 'salon' : 'master'}-${item.id} transition p-1 shrink-0 active:scale-90" title="Seçilmişlərə əlavə et">
-                            <svg class="w-4 h-4 ${this.isFavorite(item.type, item.id) ? 'text-rose-500 fill-current' : 'text-slate-300 hover:text-rose-500 fill-none stroke-current'}" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </button>
-                    </div>
-
-                    <p class="text-[11px] text-slate-400 truncate mt-0.5">
-                        ${item.location}
-                    </p>
-
-                    <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        <span class="text-[11px] font-black text-amber-500 flex items-center gap-0.5">
-                            <svg class="w-3 h-3 text-amber-500 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${item.rating} <span class="text-[10px] text-slate-400 font-normal">(${item.reviewsCount})</span>
-                        </span>
-                        ${item.badge ? `
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                                ${item.badge}
-                            </span>
-                        ` : ''}
-                        <span class="text-[9px] font-semibold text-slate-400">
-                            • ${item.type === 'company' ? 'Məkan' : 'Usta'}
-                        </span>
-                    </div>
-
-                    <div class="mt-2 flex items-center justify-between">
-                        <div class="text-[11px] font-bold text-tbank-graphite">
-                            ${item.price > 0 ? `dan ${item.price} ₼` : 'Onlayn qəbul'}
-                        </div>
-                        <button onclick="${item.type === 'company' ? `App.startBooking(${item.id})` : `App.bookMaster('${item.name}', '${item.salonName}')`}" 
-                                class="px-3.5 py-1.5 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-[11px] shadow-sm transition whitespace-nowrap">
-                            Qəbula yazıl
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        grid.innerHTML = itemsToShow.map(item => MarketplaceUI.catalogCard(item)).join('');
 
     },
 
@@ -2410,6 +2511,16 @@ const App = {
     resetCatalogCategory: function() {
         this.currentSubcategory = 'all';
         Router.navigate(`/catalog/${this.currentTopCategory}`);
+    },
+
+    openCategorySelectModal: function() {
+        const section = document.getElementById('category-selector-section');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    openBusinessInquiry: function() {
+        Router.navigate('/for-business');
+        setTimeout(() => document.getElementById('businessInquiryForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     },
 
     resetCatalogFilters: function() {
@@ -2525,6 +2636,7 @@ const App = {
         // Update all heart icons in active DOM matching this item
         const itemKey = isMaster ? 'master' : 'salon';
         document.querySelectorAll(`.fav-btn-${itemKey}-${id}`).forEach(btn => {
+            btn.setAttribute('aria-pressed', String(added));
             const svg = btn.querySelector('svg');
             if (svg) {
                 if (added) {
@@ -2730,8 +2842,26 @@ const App = {
         `).join('');
     },
 
+    openRecommended: function() {
+        this.selectSubcategory('all');
+        document.getElementById('salons')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    openOffers: function() {
+        this.activeTag = 'discount';
+        this.renderSalons();
+        document.getElementById('salons')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        this.showToast('Endirimli təkliflər göstərilir');
+    },
     showOnMap: function() {
-        this.showToast("Xəritə baxışı aktivləşdirilir");
+        let modal = document.getElementById('publicMapModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'publicMapModal';
+            modal.className = 'hidden fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 modal-fade';
+            modal.innerHTML = `<div class="bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl"><div class="flex items-center justify-between mb-4"><div><h3 class="font-black text-lg text-tbank-graphite">Xəritədə məkanlar</h3><p class="text-xs text-slate-500">Bakı üzrə yaxın məkanlar</p></div><button onclick="document.getElementById('publicMapModal').classList.add('hidden')" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 text-xl">×</button></div><div class="relative h-[55vh] sm:h-[420px] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200"><div class="absolute inset-0 opacity-60" style="background-image:radial-gradient(#94a3b8 1px,transparent 1px);background-size:18px 18px"></div>${ZeyvoData.salons.slice(0, 6).map((salon, index) => `<a href="#/salon/${salon.id}" class="absolute px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 shadow-md text-[10px] font-black text-tbank-graphite" style="left:${12 + (index * 14) % 72}%;top:${18 + (index * 17) % 62}%">${salon.name.split(' ')[0]}</a>`).join('')}</div></div>`;
+            document.body.appendChild(modal);
+        }
+        modal.classList.remove('hidden');
     },
 };
 

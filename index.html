@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Zeyvo Online — Xidmətlər və Salonlar</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ffdd2d'/%3E%3Cpath d='M17 21h30L25 43h22' fill='none' stroke='%23101114' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
     <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +47,8 @@
     </script>
 
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/style.css?v=20261011_userfix" />
+    <link rel="stylesheet" href="css/components.css?v=20261011_userfix" />
 </head>
 <body class="selection:bg-[#FFDD2D] selection:text-[#1F2024] pb-24 md:pb-0 safe-pb">
 
@@ -60,16 +62,16 @@
             <!-- App Bar: h-14 on mobile, h-16 on desktop -->
             <nav class="h-14 sm:h-16 flex items-center justify-between border-b border-black/[0.06]">
                 <!-- Brand + City -->
-                <div class="flex items-center gap-3 sm:gap-5">
-                    <a href="#/" class="text-2xl sm:text-2xl font-black tracking-[-0.055em] text-tbank-graphite flex items-center gap-1">
+                <div class="flex items-center gap-1.5 sm:gap-5 min-w-0">
+                    <a href="#/" class="text-xl sm:text-2xl font-black tracking-[-0.055em] text-tbank-graphite flex items-center gap-1 shrink-0">
                         <span>zeyvo</span>
                         <span class="w-2 h-2 rounded-full bg-tbank-graphite inline-block mb-1"></span>
                     </a>
 
 
                     <!-- City Pill Button -->
-                    <button onclick="App.openCityModal()" class="flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-black/[0.07] hover:bg-black/[0.10] text-[11px] sm:text-xs font-bold text-tbank-graphite transition">
-                        <svg class="w-3.5 h-3.5 text-black/60" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 21s7-5 7-12a7 7 0 1 0-14 0c0 7 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                    <button onclick="App.openCityModal()" class="mobile-city-pill flex items-center gap-1 h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-black/[0.07] hover:bg-black/[0.10] text-[11px] sm:text-xs font-bold text-tbank-graphite transition min-w-0">
+                        <svg class="hidden sm:block w-3.5 h-3.5 text-black/60" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 21s7-5 7-12a7 7 0 1 0-14 0c0 7 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
                         <span id="currentCityText">Bakı</span>
                         <svg class="w-3 h-3 text-black/40" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
@@ -287,16 +289,6 @@
                         </div>
                     </div>
 
-                    <!-- Mobile Favorites Button -->
-                    <button onclick="App.openFavoritesModal()" class="relative h-8 px-2.5 rounded-xl bg-black/[0.07] text-[11px] font-bold flex items-center justify-center text-tbank-graphite" title="Seçilmişlər">
-                        <svg class="w-3.5 h-3.5 text-rose-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        <span id="mobileFavoritesBadge" class="hidden bg-rose-500 text-white text-[9px] font-black px-1 rounded-full">0</span>
-                    </button>
-
-                    <button onclick="App.openBookingsModal()" class="relative h-8 px-2.5 rounded-xl bg-black/[0.07] text-[11px] font-bold flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                        <span id="mobileBookingBadge" class="hidden bg-tbank-graphite text-white text-[9px] font-black px-1 rounded-full">0</span>
-                    </button>
                     <button id="mobileAuthBtn" onclick="App.handleProfileClick()" class="w-8 h-8 rounded-xl bg-tbank-graphite text-white flex items-center justify-center overflow-hidden shrink-0">
                         <span id="mobileAvatarSpan"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
                     </button>
@@ -360,7 +352,7 @@
     <!-- ========================================================
          PERSISTENT FOOTER
     ======================================================== -->
-    <footer id="mainFooter" class="bg-white border-t border-tbank-border mt-12 py-8 sm:py-12">
+    <footer id="mainFooter" class="bg-white border-t border-tbank-border mt-5 sm:mt-12 py-8 sm:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8">
                 <div class="col-span-2">
@@ -390,7 +382,7 @@
                     <h4 class="font-bold text-xs text-tbank-graphite">Biznes</h4>
                     <ul class="mt-2.5 space-y-1.5 text-xs font-medium text-slate-600">
                         <li><a href="#/business" class="hover:text-tbank-graphite">Zeyvo Business</a></li>
-                        <li><a href="#/business" class="hover:text-tbank-graphite">Qoşulma şərtləri</a></li>
+                        <li><a href="#/for-business" class="hover:text-tbank-graphite">Qoşulma şərtləri</a></li>
                     </ul>
                 </div>
 
@@ -418,23 +410,23 @@
          MOBILE BOTTOM NAVIGATION DOCK (Native iOS/Android App Bar)
     ======================================================== -->
     <div id="mobileBottomNav" class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-tbank-border z-40 px-4 py-2 flex items-center justify-around shadow-lg safe-pb">
-        <a href="#/" class="mobile-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-tbank-graphite" data-route="/">
+        <a href="#/" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-[10px] font-bold text-tbank-graphite" data-route="/">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             <span>Əsas</span>
         </a>
-        <a href="#/salons" class="mobile-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite" data-route="/salons">
+        <a href="#/salons" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite" data-route="/salons">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             <span>Kataloq</span>
         </a>
-        <a href="#/masters" class="mobile-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite" data-route="/masters">
+        <a href="#/masters" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite" data-route="/masters">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             <span>Ustalar</span>
         </a>
-        <button onclick="App.openBookingsModal()" class="flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite relative">
+        <button onclick="App.openBookingsModal()" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite relative">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
             <span>Yazılar</span>
         </button>
-        <button onclick="App.handleProfileClick()" class="flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite">
+        <button onclick="App.handleProfileClick()" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-400 hover:text-tbank-graphite">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             <span>Profil</span>
         </button>
@@ -949,9 +941,8 @@
                     <button id="profileTabBookings" onclick="App.setProfileTab('bookings')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-tbank-graphite">
                         Yazılarım (<span id="profileBookingsCountBadge">0</span>)
                     </button>
-                    <button id="profileTabFavorites" onclick="App.setProfileTab('favorites')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-tbank-graphite inline-flex items-center justify-center gap-1">
-                        <svg class="w-3.5 h-3.5 fill-rose-500 text-rose-500" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        <span>Sevimlilər (<span id="profileFavoritesCountBadge">0</span>)</span>
+                    <button id="profileTabFavorites" onclick="App.setProfileTab('favorites')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-tbank-graphite inline-flex items-center justify-center">
+                        <span>Seçilmişlər (<span id="profileFavoritesCountBadge">0</span>)</span>
                     </button>
                     <button id="profileTabSecurity" onclick="App.setProfileTab('security')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-tbank-graphite">
                         Təhlükəsizlik
@@ -1061,6 +1052,36 @@
         </div>
     </div>
 
+    <!-- REVIEW MODAL -->
+    <div id="reviewModal" class="hidden fixed inset-0 z-[90] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm modal-fade">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl mobile-sheet">
+            <div class="w-10 h-1 rounded-full bg-slate-300 mx-auto mb-3 sm:hidden"></div>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="font-black text-lg text-tbank-graphite">Rəy bildir</h3>
+                    <p id="reviewSalonName" class="text-xs text-slate-500 mt-0.5"></p>
+                </div>
+                <button onclick="App.closeReviewModal()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xl" aria-label="Bağla">×</button>
+            </div>
+            <div class="mt-5">
+                <label class="text-xs font-bold text-slate-600">Qiymətləndirmə *</label>
+                <div class="flex items-center gap-2 mt-2" role="radiogroup" aria-label="Ulduz sayı">
+                    <button type="button" data-review-star="1" onclick="App.setReviewRating(1)" class="text-slate-300 transition" aria-label="1 ulduz"><svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" data-review-star="2" onclick="App.setReviewRating(2)" class="text-slate-300 transition" aria-label="2 ulduz"><svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" data-review-star="3" onclick="App.setReviewRating(3)" class="text-slate-300 transition" aria-label="3 ulduz"><svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" data-review-star="4" onclick="App.setReviewRating(4)" class="text-slate-300 transition" aria-label="4 ulduz"><svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" data-review-star="5" onclick="App.setReviewRating(5)" class="text-slate-300 transition" aria-label="5 ulduz"><svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                </div>
+            </div>
+            <div class="mt-4">
+                <label for="reviewText" class="text-xs font-bold text-slate-600">Rəyiniz *</label>
+                <textarea id="reviewText" rows="4" maxlength="600" placeholder="Xidmət və təcrübəniz haqqında yazın..." class="mt-1.5 w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none focus:border-tbank-graphite focus:ring-2 focus:ring-tbank-yellow/40 resize-none"></textarea>
+                <p id="reviewError" class="hidden mt-1 text-xs font-bold text-rose-600"></p>
+            </div>
+            <button onclick="App.submitReview()" class="mt-4 w-full h-11 rounded-xl bg-tbank-yellow hover:bg-tbank-yellowHover text-tbank-graphite font-black text-sm">Rəyi göndər</button>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="hidden fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[9999] bg-[#101114] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 modal-fade border border-white/10 select-none">
         <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shrink-0 shadow-xs"></span>
@@ -1149,16 +1170,29 @@
          MODULAR JAVASCRIPT LOADING (Strict Dependency Order)
     ======================================================== -->
     <script src="js/data.js?v=20261004_mkt"></script>
-    <script src="js/views/homeView.js?v=20261004_mkt"></script>
-    <script src="js/views/salonsView.js?v=20261004_mkt"></script>
-    <script src="js/views/mastersView.js?v=20261004_mkt"></script>
-    <script src="js/views/masterDetailView.js?v=20261004_mkt"></script>
-    <script src="js/views/salonDetailView.js?v=20261004_mkt"></script>
-    <script src="js/views/businessView.js?v=20261004_mkt"></script>
+    <script src="js/components/ui.js?v=20261011_userfix"></script>
+    <script src="js/components/marketplace.js?v=20261009_mobile2"></script>
+    <script src="js/views/homeView.js?v=20261011_category_style"></script>
+    <script src="js/views/salonsView.js?v=20261011_userfix"></script>
+    <script src="js/views/mastersView.js?v=20261009_mobile2"></script>
+    <script src="js/views/masterDetailView.js?v=20261009_mobile2"></script>
+    <script src="js/views/salonDetailView.js?v=20261011_userfix"></script>
+    <script src="js/views/businessView.js?v=20261009_mobile2"></script>
     <script src="js/views/businessAuthView.js?v=20261004_mkt"></script>
     <script src="js/services/appointmentColorService.js?v=20261007_clr"></script>
-    <script src="js/views/businessDashboardView.js?v=20261004_mkt"></script>
-    <script src="js/router.js?v=20261004_mkt"></script>
-    <script src="js/app.js?v=20261004_mkt"></script>
+    <script src="js/views/businessDashboardView.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/calendar.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/staffProfile.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/branchesResources.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/products.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/services.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/integrations.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/loyalty.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/marketing.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/finance.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/clients.js?v=20261009_mobile2"></script>
+    <script src="js/views/business/pos.js?v=20261009_mobile2"></script>
+    <script src="js/router.js?v=20261009_mobile2"></script>
+    <script src="js/app.js?v=20261011_userfix"></script>
 </body>
 </html>

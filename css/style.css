@@ -254,5 +254,73 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
+/* User marketplace: compact mobile layout */
+@media (max-width: 639px) {
+    #mainHeader nav {
+        gap: 8px;
+    }
 
+    .mobile-city-pill {
+        max-width: 62px;
+    }
 
+    .mobile-city-pill #currentCityText {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #mobileBottomNav {
+        padding-top: 6px;
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+    }
+
+    #mobileBottomNav svg {
+        width: 19px;
+        height: 19px;
+    }
+
+    #category-selector-section .cat-card {
+        min-height: 76px;
+    }
+
+    #category-selector-section .cat-card > span:first-child {
+        width: 32px;
+        height: 32px;
+    }
+
+    #category-selector-section .cat-card > div,
+    #category-selector-section .cat-card > span:last-child {
+        line-height: 1.15;
+    }
+
+    #catalogItemsCountBadge,
+    #dynamicSubcatBadge,
+    #catalogCount {
+        flex-shrink: 0;
+    }
+
+    #category-selector-section h2,
+    #dynamicCatalogTitle {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .subcat-card {
+        width: 84px !important;
+        padding: 6px !important;
+        justify-content: flex-start !important;
+        gap: 5px;
+    }
+
+    .subcat-card > div:first-child {
+        margin-bottom: 0 !important;
+        width: 48px;
+        height: 48px;
+    }
+
+    #catalogMobileFilterModal .mobile-sheet {
+        padding: 18px;
+        gap: 12px;
+    }
+}
