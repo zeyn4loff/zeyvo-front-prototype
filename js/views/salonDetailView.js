@@ -55,6 +55,15 @@ const SalonDetailView = {
                     <a href="#/catalog" class="inline-flex mt-5 h-10 px-5 items-center rounded-xl bg-tbank-yellow text-tbank-graphite text-xs font-black">Kataloqa qayıt</a>
                 </div>`;
         }
+        const business = App.getMarketplaceBusiness(salon);
+        const branchParam = new URLSearchParams((window.location.hash.split('?')[1] || '')).get('branch');
+        if (branchParam && business.branches.some(branch => branch.id === branchParam)) {
+            App.publicBranchSelections[salon.id] = branchParam;
+        }
+        const businessContext = App.getBookingBusinessContext(salon);
+        const selectedBranch = business.branches.find(branch => branch.id === businessContext?.branchId) || business.branches[0] || null;
+        const displayName = business.name || salon.name;
+        const displayLocation = selectedBranch?.address || salon.location;
         const workingSchedule = App.getSalonSchedule(salon);
         const openStatus = App.getSalonOpenStatus(salon);
         const contact = App.getSalonContact(salon);
@@ -85,7 +94,7 @@ const SalonDetailView = {
                             <span>/</span>
                             <a href="#/salons" class="hover:text-tbank-graphite">Kataloq</a>
                             <span>/</span>
-                            <span class="text-tbank-graphite font-bold truncate">${salon.name}</span>
+                            <span class="text-tbank-graphite font-bold truncate">${displayName}</span>
                         </div>
                     </div>
 
@@ -98,16 +107,16 @@ const SalonDetailView = {
                     <div class="flex flex-col sm:flex-row items-start gap-4 min-w-0 flex-1">
                         <!-- Salon Logo Badge -->
                         <div class="w-full h-36 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 border border-tbank-border flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-                            <img src="${salon.image}" alt="${salon.name}" class="w-full h-full object-cover" />
+                            <img src="${salon.image}" alt="${displayName}" class="w-full h-full object-cover" />
                         </div>
 
                         <!-- Salon Info -->
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-tbank-graphite">${salon.name}</h1>
+                                <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-tbank-graphite">${displayName}</h1>
                                 <span class="px-2 py-0.5 rounded-lg ${openStatus.isOpen ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'} text-[10px] font-extrabold border">${openStatus.label}</span>
                             </div>
-                            <p class="text-xs text-slate-500 font-medium mt-1 truncate"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0 inline-block -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> ${salon.location}</p>
+                            <p class="text-xs text-slate-500 font-medium mt-1 truncate"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0 inline-block -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> ${selectedBranch?.name ? `${selectedBranch.name} · ` : ''}${displayLocation}</p>
 
                             <div class="flex flex-wrap items-center gap-3 mt-2 text-xs">
                                 <a href="tel:+${phoneDigits}" class="flex items-center gap-1 text-slate-600 hover:text-tbank-graphite font-semibold">
@@ -140,6 +149,27 @@ const SalonDetailView = {
                     </div>
                 </div>
 
+                ${business.branches.length > 1 ? `
+                <section class="bg-white rounded-3xl p-4 sm:p-5 border border-tbank-border shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+                        <div>
+                            <h2 class="font-black text-sm sm:text-base text-tbank-graphite">Filialı seçin</h2>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Ünvan, iş saatları və rezervasiya seçilmiş filiala aiddir</p>
+                        </div>
+                        <span class="text-[10px] font-black text-slate-500 bg-slate-100 rounded-full px-2.5 py-1">${business.branches.length} filial</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        ${business.branches.map(branch => {
+                            const active = branch.id === selectedBranch?.id;
+                            return `<button type="button" onclick="App.selectPublicBranch(${salon.id}, '${branch.id}')" class="text-left p-3 rounded-2xl border transition ${active ? 'border-tbank-graphite bg-tbank-yellow/35 ring-2 ring-tbank-yellow' : 'border-slate-200 bg-slate-50 hover:border-slate-400'}">
+                                <span class="flex items-center justify-between gap-2"><span class="text-xs font-black text-tbank-graphite">${branch.name}</span>${active ? '<span class="text-[9px] font-black bg-tbank-graphite text-white rounded-full px-2 py-0.5">Seçilib</span>' : ''}</span>
+                                <span class="block mt-1 text-[10px] leading-relaxed text-slate-500">${branch.address || 'Ünvan dəqiqləşdirilir'}</span>
+                                <span class="block mt-1 text-[10px] font-bold text-slate-700">${branch.hours || '09:00 – 21:00'}</span>
+                            </button>`;
+                        }).join('')}
+                    </div>
+                </section>` : ''}
+
                 <!-- 2. Two-Column Info: Description + On the map -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
                     <!-- Description -->
@@ -147,7 +177,7 @@ const SalonDetailView = {
                         <div>
                             <h2 class="font-black text-sm sm:text-base text-tbank-graphite mb-2">Haqqında</h2>
                             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                                ${salon.description} Yüksək sanitariya standartları, sertifikatlı avadanlıqlar və peşəkar komanda.
+                                ${business.description || salon.description} Yüksək sanitariya standartları, sertifikatlı avadanlıqlar və peşəkar komanda.
                             </p>
                         </div>
                         <div class="mt-4 pt-3 border-t border-tbank-border/70 flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-600">
@@ -163,7 +193,7 @@ const SalonDetailView = {
                     <div class="md:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border border-tbank-border shadow-sm flex flex-col justify-between">
                         <div class="flex items-center justify-between mb-2">
                             <h2 class="font-black text-sm sm:text-base text-tbank-graphite">Xəritədə</h2>
-                            <span class="text-xs text-slate-400 font-medium">${salon.distance}</span>
+                            <span class="text-xs text-slate-400 font-medium">Seçilmiş filial</span>
                         </div>
                         
                         <div class="relative h-28 sm:h-32 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
@@ -171,7 +201,7 @@ const SalonDetailView = {
                             <div class="relative z-10 flex flex-col items-center">
                                 <div class="px-2.5 py-1 rounded-lg bg-tbank-graphite text-white font-extrabold text-[11px] shadow-md flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-tbank-yellow"></span>
-                                    <span>${salon.name.split(' ')[0]}</span>
+                                    <span>${selectedBranch?.name || displayName}</span>
                                 </div>
                                 <div class="w-2 h-2 bg-tbank-graphite rotate-45 -mt-1"></div>
                             </div>

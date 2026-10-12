@@ -329,17 +329,45 @@ const App = {
             // Search query filter
             if (this.searchQuery) {
                 const q = this.searchQuery.toLowerCase();
+                const business = this.getMarketplaceBusiness(item);
                 const n = item.name.toLowerCase().includes(q);
+                const bn = (business.name || '').toLowerCase().includes(q);
+                const bl = (business.branches || []).some(branch => `${branch.name || ''} ${branch.address || ''}`.toLowerCase().includes(q));
                 const t = item.tag.toLowerCase().includes(q);
                 const l = item.location.toLowerCase().includes(q);
                 const s = item.services.some(srv => srv.name.toLowerCase().includes(q));
-                if (!n && !t && !l && !s) return false;
+                if (!n && !bn && !bl && !t && !l && !s) return false;
             }
             return true;
         });
 
+        const grouped = new Map();
+        filtered.forEach(salon => {
+            const business = this.getMarketplaceBusiness(salon);
+            const context = this.getBookingBusinessContext(salon);
+            const key = context?.businessId || `listing_${salon.id}`;
+            const allBranches = business.branches || [];
+            const categoryKey = `${this.currentTopCategory}/${this.currentSubcategory}`;
+            const relevantBranches = this.currentSubcategory === 'all' ? allBranches : allBranches.filter(branch => (branch.categories || [branch.category]).includes(categoryKey));
+            const branches = relevantBranches.length ? relevantBranches : allBranches;
+            const firstBranch = branches[0] || null;
+            const listing = {
+                ...salon,
+                name: business.name || salon.name,
+                location: firstBranch?.address || salon.location,
+                branchName: firstBranch?.name || salon.name,
+                branchCount: Math.max(branches.length, 1)
+            };
+            const existing = grouped.get(key);
+            if (!existing || salon.reviewsCount > existing.reviewsCount) grouped.set(key, listing);
+        });
+        filtered = [...grouped.values()];
+
         const countEl = document.getElementById('catalogCount');
-        if (countEl) countEl.textContent = `${filtered.length} məkan`;
+        if (countEl) {
+            const branchCount = filtered.reduce((total, item) => total + (item.branchCount || 1), 0);
+            countEl.textContent = `${filtered.length} biznes · ${branchCount} filial`;
+        }
 
         if (filtered.length === 0) {
             grid.innerHTML = ZeyvoUI.emptyState({
@@ -438,21 +466,63 @@ const App = {
     },
 
     // Booking Wizard
-    getBookingBusinessContext: function(salon) {
+    publicBranchSelections: {},
+
+    getPublicBusinessDirectory: function() {
+        try {
+            const stored = JSON.parse(localStorage.getItem('zeyvo_user_businesses_v3') || '[]');
+            if (Array.isArray(stored) && stored.length) return stored;
+        } catch (e) {}
+        try {
+            if (typeof BusinessDashboardView !== 'undefined' && BusinessDashboardView.getDefaultBusinesses) {
+                return BusinessDashboardView.getDefaultBusinesses();
+            }
+        } catch (e) {}
+        return [];
+    },
+
+    getBookingBusinessContext: function(salon, requestedBranchId = null) {
         if (!salon) return null;
         if (salon.businessId && salon.branchId) {
-            return { businessId: salon.businessId, branchId: salon.branchId };
+            return { businessId: salon.businessId, branchId: requestedBranchId || salon.branchId };
         }
 
         // Demo marketplace listings connected to the matching CRM tenants/branches.
         const connectedSalons = {
             1: { businessId: 'biz_baku_beauty', branchId: 'br_bbs_1' },
-            4: { businessId: 'biz_baku_beauty', branchId: 'br_bbs_2' },
-            104: { businessId: 'biz_baku_beauty', branchId: 'br_bbs_3' },
             2: { businessId: 'biz_grand_barber', branchId: 'br_gbl_1' },
             7: { businessId: 'biz_dent_estet', branchId: 'br_de_1' }
         };
-        return connectedSalons[salon.id] || null;
+        const context = connectedSalons[salon.id] || null;
+        if (!context) return null;
+        const branchId = requestedBranchId || this.publicBranchSelections?.[salon.id] || context.branchId;
+        const business = this.getPublicBusinessDirectory().find(item => item.id === context.businessId);
+        const validBranch = business?.type === 'individual' || (business?.branches || []).some(branch => branch.id === branchId);
+        return { businessId: context.businessId, branchId: validBranch ? branchId : context.branchId };
+    },
+
+    getMarketplaceBusiness: function(salon) {
+        const context = this.getBookingBusinessContext(salon);
+        if (!context) {
+            return {
+                id: `listing_${salon.id}`,
+                name: salon.name,
+                type: 'business',
+                salonId: salon.id,
+                branches: [{ id: `listing_${salon.id}`, name: salon.name, address: salon.location, hours: salon.workHours, phone: salon.phone || '' }]
+            };
+        }
+        const business = this.getPublicBusinessDirectory().find(item => item.id === context.businessId);
+        if (!business) return { id: context.businessId, name: salon.name, type: 'business', salonId: salon.id, branches: [] };
+        const branches = business.type === 'individual'
+            ? [{ id: business.id, name: business.name, address: business.address, hours: business.hours, phone: business.phone, whatsapp: business.whatsapp, instagram: business.instagram, facebook: business.facebook }]
+            : (business.branches || []);
+        return { ...business, salonId: salon.id, branches };
+    },
+
+    selectPublicBranch: function(salonId, branchId) {
+        this.publicBranchSelections[Number(salonId)] = branchId;
+        window.location.hash = `/salon/${Number(salonId)}?branch=${encodeURIComponent(branchId)}`;
     },
 
     getSalonSchedule: function(salon) {
@@ -470,8 +540,8 @@ const App = {
         let crmRecord = null;
         if (context) {
             try {
-                const businesses = JSON.parse(localStorage.getItem('zeyvo_user_businesses_v3') || '[]');
-                const business = Array.isArray(businesses) ? businesses.find(item => item.id === context.businessId) : null;
+                const businesses = this.getPublicBusinessDirectory();
+                const business = businesses.find(item => item.id === context.businessId);
                 if (business) {
                     crmRecord = business.type === 'individual'
                         ? business
@@ -506,8 +576,8 @@ const App = {
         const context = this.getBookingBusinessContext(salon);
         if (!context) return fallback;
         try {
-            const businesses = JSON.parse(localStorage.getItem('zeyvo_user_businesses_v3') || '[]');
-            const business = Array.isArray(businesses) ? businesses.find(item => item.id === context.businessId) : null;
+            const businesses = this.getPublicBusinessDirectory();
+            const business = businesses.find(item => item.id === context.businessId);
             const record = business?.type === 'individual'
                 ? business
                 : (business?.branches || []).find(branch => branch.id === context.branchId);
@@ -556,17 +626,23 @@ const App = {
 
         const selectedService = (defaultServiceId ? salon.services.find(s => s.id === defaultServiceId) : null) || salon.services[0];
 
+        const marketplaceBusiness = this.getMarketplaceBusiness(salon);
+        const businessContext = this.getBookingBusinessContext(salon);
+        const selectedBranch = marketplaceBusiness.branches.find(branch => branch.id === businessContext?.branchId) || marketplaceBusiness.branches[0] || null;
+
         this.currentBooking = {
             salon: salon,
             service: selectedService,
             master: master,
-            time: defaultSlot || salon.slots[0]
+            time: defaultSlot || salon.slots[0],
+            businessId: businessContext?.businessId || null,
+            branchId: businessContext?.branchId || null
         };
 
         const modalSalonName = document.getElementById('modalSalonName');
         const modalSalonLocation = document.getElementById('modalSalonLocation');
-        if (modalSalonName) modalSalonName.textContent = salon.name;
-        if (modalSalonLocation) modalSalonLocation.textContent = salon.location;
+        if (modalSalonName) modalSalonName.textContent = marketplaceBusiness.name || salon.name;
+        if (modalSalonLocation) modalSalonLocation.textContent = selectedBranch ? `${selectedBranch.name} · ${selectedBranch.address || salon.location}` : salon.location;
 
         const masterBadge = document.getElementById('modalMasterInfo');
         const masterNameEl = document.getElementById('modalMasterName');
@@ -706,7 +782,9 @@ const App = {
         const time = this.currentBooking.time || '12:00';
         const start = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
         const duration = parseInt(this.currentBooking.service?.duration, 10) || 45;
-        const businessContext = this.getBookingBusinessContext(this.currentBooking.salon);
+        const businessContext = this.currentBooking.businessId
+            ? { businessId: this.currentBooking.businessId, branchId: this.currentBooking.branchId }
+            : this.getBookingBusinessContext(this.currentBooking.salon);
         const businessKey = businessContext ? this.getBusinessBookingKey(businessContext.branchId) : null;
         let businessBookings;
         try { businessBookings = businessKey ? JSON.parse(localStorage.getItem(businessKey) || '[]') : []; }
@@ -724,10 +802,13 @@ const App = {
             return;
         }
 
+        const marketplaceBusiness = this.getMarketplaceBusiness(this.currentBooking.salon);
+        const bookingBranch = marketplaceBusiness.branches.find(branch => branch.id === businessContext?.branchId) || null;
         const newBooking = {
             id: Date.now(),
             salonId: this.currentBooking.salon?.id || 1,
-            salonName: this.currentBooking.salon?.name || "Gözəllik Məkanı",
+            salonName: marketplaceBusiness.name || this.currentBooking.salon?.name || "Gözəllik Məkanı",
+            branchName: bookingBranch?.name || null,
             masterName: this.currentBooking.master ? this.currentBooking.master.name : null,
             serviceName: this.currentBooking.service ? this.currentBooking.service.name : "Xidmət",
             price: this.currentBooking.service ? this.currentBooking.service.price : 30,
@@ -2370,22 +2451,43 @@ const App = {
             if (this.catalogFilter.awardsOnly && s.badge !== 'Zeyvo 2026' && s.badge !== 'Top Salon' && s.rating < 4.96) return false;
             if (this.catalogFilter.search) {
                 const q = this.catalogFilter.search.toLowerCase();
-                const m = s.name.toLowerCase().includes(q) || s.tag.toLowerCase().includes(q) || s.location.toLowerCase().includes(q) || s.services.some(srv => srv.name.toLowerCase().includes(q));
+                const business = this.getMarketplaceBusiness(s);
+                const branchMatch = (business.branches || []).some(branch => `${branch.name || ''} ${branch.address || ''}`.toLowerCase().includes(q));
+                const m = s.name.toLowerCase().includes(q) || (business.name || '').toLowerCase().includes(q) || branchMatch || s.tag.toLowerCase().includes(q) || s.location.toLowerCase().includes(q) || s.services.some(srv => srv.name.toLowerCase().includes(q));
                 if (!m) return false;
             }
             return true;
-        }).map(s => ({
-            id: s.id,
-            type: 'company',
-            name: s.name,
-            image: s.image,
-            location: s.location,
-            rating: s.rating,
-            reviewsCount: s.reviewsCount,
-            badge: s.badge,
-            price: s.services[0]?.price || 0,
-            tag: s.tag
-        }));
+        });
+
+        const groupedBusinesses = new Map();
+        matchingSalons.forEach(salon => {
+            const business = this.getMarketplaceBusiness(salon);
+            const context = this.getBookingBusinessContext(salon);
+            const groupKey = context?.businessId || `listing_${salon.id}`;
+            const allBranches = business.branches || [];
+            const categoryKey = `${catId}/${subId}`;
+            const relevantBranches = subId === 'all' ? allBranches : allBranches.filter(branch => (branch.categories || [branch.category]).includes(categoryKey));
+            const branches = relevantBranches.length ? relevantBranches : allBranches;
+            const firstBranch = branches[0] || null;
+            const item = {
+                id: salon.id,
+                type: 'company',
+                businessId: context?.businessId || null,
+                name: business.name || salon.name,
+                image: salon.image,
+                location: firstBranch?.address || salon.location,
+                branchName: firstBranch?.name || salon.name,
+                branchCount: Math.max(branches.length, 1),
+                rating: salon.rating,
+                reviewsCount: salon.reviewsCount,
+                badge: salon.badge,
+                price: salon.services[0]?.price || 0,
+                tag: salon.tag
+            };
+            const existing = groupedBusinesses.get(groupKey);
+            if (!existing || salon.reviewsCount > existing.reviewsCount) groupedBusinesses.set(groupKey, item);
+        });
+        matchingSalons = [...groupedBusinesses.values()];
 
         // 2. Filter Masters (Specialists)
         let matchingMasters = ZeyvoData.masters.filter(m => {
@@ -2406,7 +2508,7 @@ const App = {
             location: m.salonName,
             rating: m.rating,
             reviewsCount: Math.floor(m.rating * 22) + 20,
-            badge: m.title.includes('Top') || m.title.includes('Baş') ? 'AWARDS 2026' : null,
+            badge: null,
             price: 25,
             salonName: m.salonName,
             tag: m.title
@@ -2439,7 +2541,14 @@ const App = {
         // 5. Update Count Badge
         const countBadge = document.getElementById('catalogItemsCountBadge');
         if (countBadge) {
-            countBadge.textContent = `${combined.length} məkan və usta`;
+            const businessCount = matchingSalons.length;
+            const branchCount = matchingSalons.reduce((total, item) => total + (item.branchCount || 1), 0);
+            const masterCount = matchingMasters.length;
+            countBadge.textContent = this.catalogFilter.type === 'masters'
+                ? `${masterCount} usta`
+                : this.catalogFilter.type === 'companies'
+                    ? `${businessCount} biznes · ${branchCount} filial`
+                    : `${businessCount} biznes · ${branchCount} filial · ${masterCount} usta`;
         }
 
         // 6. Handle Empty State
@@ -2853,12 +2962,27 @@ const App = {
         this.showToast('Endirimli təkliflər göstərilir');
     },
     showOnMap: function() {
+        const mapLocations = [];
+        const seenBusinesses = new Set();
+        ZeyvoData.salons.forEach(salon => {
+            const business = this.getMarketplaceBusiness(salon);
+            const context = this.getBookingBusinessContext(salon);
+            const key = context?.businessId || `listing_${salon.id}`;
+            if (seenBusinesses.has(key)) return;
+            seenBusinesses.add(key);
+            (business.branches || []).forEach(branch => mapLocations.push({
+                salonId: salon.id,
+                branchId: context ? branch.id : null,
+                label: branch.name || business.name || salon.name,
+                address: branch.address || salon.location
+            }));
+        });
         let modal = document.getElementById('publicMapModal');
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'publicMapModal';
             modal.className = 'hidden fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 modal-fade';
-            modal.innerHTML = `<div class="bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl"><div class="flex items-center justify-between mb-4"><div><h3 class="font-black text-lg text-tbank-graphite">Xəritədə məkanlar</h3><p class="text-xs text-slate-500">Bakı üzrə yaxın məkanlar</p></div><button onclick="document.getElementById('publicMapModal').classList.add('hidden')" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 text-xl">×</button></div><div class="relative h-[55vh] sm:h-[420px] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200"><div class="absolute inset-0 opacity-60" style="background-image:radial-gradient(#94a3b8 1px,transparent 1px);background-size:18px 18px"></div>${ZeyvoData.salons.slice(0, 6).map((salon, index) => `<a href="#/salon/${salon.id}" class="absolute px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 shadow-md text-[10px] font-black text-tbank-graphite" style="left:${12 + (index * 14) % 72}%;top:${18 + (index * 17) % 62}%">${salon.name.split(' ')[0]}</a>`).join('')}</div></div>`;
+            modal.innerHTML = `<div class="bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl"><div class="flex items-center justify-between mb-4"><div><h3 class="font-black text-lg text-tbank-graphite">Xəritədə filiallar</h3><p class="text-xs text-slate-500">Hər nişan konkret ünvandakı filialı göstərir</p></div><button onclick="document.getElementById('publicMapModal').classList.add('hidden')" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500 text-xl">×</button></div><div class="relative h-[55vh] sm:h-[420px] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200"><div class="absolute inset-0 opacity-60" style="background-image:radial-gradient(#94a3b8 1px,transparent 1px);background-size:18px 18px"></div>${mapLocations.slice(0, 10).map((location, index) => `<a href="#/salon/${location.salonId}${location.branchId ? `?branch=${encodeURIComponent(location.branchId)}` : ''}" title="${location.address}" class="absolute px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 shadow-md text-[10px] font-black text-tbank-graphite" style="left:${8 + (index * 13) % 76}%;top:${12 + (index * 17) % 68}%">${location.label}</a>`).join('')}</div></div>`;
             document.body.appendChild(modal);
         }
         modal.classList.remove('hidden');
