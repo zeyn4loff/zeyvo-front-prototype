@@ -287,8 +287,8 @@ const ZeyvoData = {
             discount: "Endirim 15%",
             description: "Peşəkar həkim-kosmetoloqlar, biorevitalizasiya, pilinq və lazer cavanlaşdırma.",
             services: [
-                { id: 1011, name: "Biorevitalizasiya və mezoterapiya", price: 65, duration: "45 dəq" },
-                { id: 1012, name: "Dərinin dərindən təmizlənməsi", price: 40, duration: "60 dəq" }
+                { id: 1011, name: "Biorevitalizasiya və mezoterapiya", category: "İnyeksiya prosedurları", price: 65, duration: "45 dəq" },
+                { id: 1012, name: "Dərinin dərindən təmizlənməsi", category: "Dəriyə qulluq", price: 40, duration: "60 dəq" }
             ],
             slots: ["11:30", "14:00", "17:00"]
         },

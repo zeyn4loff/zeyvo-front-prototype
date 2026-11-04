@@ -116,7 +116,21 @@ const App = {
 
     isCategoriesExpanded: false,
 
+    resetPublicSearchAutofill: function() {
+        const input = document.getElementById('searchInput');
+        if (!input || document.activeElement === input || this.searchQuery) return;
+
+        input.value = '';
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) clearBtn.classList.add('hidden');
+    },
+
     init: function() {
+        this.resetPublicSearchAutofill();
+        [250, 1000].forEach(delay => {
+            setTimeout(() => this.resetPublicSearchAutofill(), delay);
+        });
+
         const savedBookings = localStorage.getItem('zeyvo_user_bookings');
         if (savedBookings) {
             try {
@@ -616,13 +630,10 @@ const App = {
             return;
         }
 
-        let master = null;
-        if (masterName) {
-            master = ZeyvoData.masters.find(m => m.name === masterName && m.salonId === salonId) || null;
-        }
-        if (!master) {
-            master = ZeyvoData.masters.find(m => m.salonId === salonId) || null;
-        }
+        const availableMasters = ZeyvoData.masters.filter(m =>
+            m.salonName?.toLocaleLowerCase('az') === salon.name.toLocaleLowerCase('az')
+        );
+        const master = masterName ? availableMasters.find(m => m.name === masterName) || null : null;
 
         const selectedService = (defaultServiceId ? salon.services.find(s => s.id === defaultServiceId) : null) || salon.services[0];
 
@@ -657,7 +668,12 @@ const App = {
 
         const sList = document.getElementById('bookingServiceList');
         if (sList) {
-            sList.innerHTML = salon.services.map((s) => `
+            const groups = typeof SalonDetailView !== 'undefined'
+                ? SalonDetailView.groupServices(salon.services)
+                : [{ name: '', services: salon.services }];
+            sList.innerHTML = groups.map(group => `
+                ${group.name ? `<div class="pt-1 text-xs font-black text-tbank-graphite">${group.name}</div>` : ''}
+                ${group.services.map((s) => `
                 <label class="flex items-center justify-between p-3 rounded-xl border ${s.id === this.currentBooking.service.id ? 'border-tbank-graphite bg-amber-50/40' : 'border-tbank-border'} cursor-pointer hover:bg-tbank-bg transition">
                     <div class="flex items-center gap-3">
                         <input type="radio" name="b_service" value="${s.id}" ${s.id === this.currentBooking.service.id ? 'checked' : ''} onchange="App.updateBookingService(${s.id})" class="accent-black w-4 h-4">
@@ -667,6 +683,18 @@ const App = {
                         </div>
                     </div>
                     <div class="font-black text-xs text-tbank-graphite">${s.price} ₼</div>
+                </label>
+                `).join('')}
+            `).join('');
+        }
+
+        const masterList = document.getElementById('bookingMasterList');
+        if (masterList) {
+            const choices = [{ id: 0, name: 'İstənilən usta', title: availableMasters.length ? 'İlk uyğun usta' : 'Məkan üzrə usta siyahısı hələ əlavə edilməyib' }, ...availableMasters];
+            masterList.innerHTML = choices.map(m => `
+                <label class="flex items-center gap-3 p-3 rounded-xl border ${m.id === (master?.id || 0) ? 'border-tbank-graphite bg-amber-50/40' : 'border-tbank-border'} cursor-pointer hover:bg-tbank-bg transition">
+                    <input type="radio" name="b_master" value="${m.id}" ${m.id === (master?.id || 0) ? 'checked' : ''} onchange="App.updateBookingMaster(${m.id})" class="accent-black w-4 h-4">
+                    <span><span class="block font-extrabold text-xs text-tbank-graphite">${m.name}</span><span class="block text-[11px] text-slate-400">${m.title}</span></span>
                 </label>
             `).join('');
         }
@@ -727,6 +755,26 @@ const App = {
                     }
                 });
             }
+        }
+    },
+
+    updateBookingMaster: function(masterId) {
+        const salon = this.currentBooking.salon;
+        if (!salon) return;
+        this.currentBooking.master = masterId
+            ? ZeyvoData.masters.find(m => m.id === masterId && m.salonName?.toLocaleLowerCase('az') === salon.name.toLocaleLowerCase('az')) || null
+            : null;
+        document.querySelectorAll('#bookingMasterList label').forEach(label => {
+            const input = label.querySelector('input');
+            label.classList.toggle('border-tbank-graphite', input?.checked);
+            label.classList.toggle('bg-amber-50/40', input?.checked);
+            label.classList.toggle('border-tbank-border', !input?.checked);
+        });
+        const badge = document.getElementById('modalMasterInfo');
+        const name = document.getElementById('modalMasterName');
+        if (badge && name) {
+            name.textContent = this.currentBooking.master?.name || '';
+            badge.classList.toggle('hidden', !this.currentBooking.master);
         }
     },
 
@@ -2135,7 +2183,7 @@ const App = {
             const actualIdx = this.currentSalonGallery.indexOf(item);
             const isInterior = item.type === 'interior';
             return `
-                <div onclick="App.openLightbox(${actualIdx})" class="group relative h-36 sm:h-44 rounded-2xl overflow-hidden bg-slate-900 cursor-pointer shadow-sm border border-slate-100 hover:shadow-md transition">
+                <div onclick="App.openLightbox(${actualIdx})" class="group relative h-36 sm:h-44 shrink-0 w-[78%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] snap-start rounded-2xl overflow-hidden bg-slate-900 cursor-pointer shadow-sm border border-slate-100 hover:shadow-md transition">
                     <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-90 group-hover:opacity-100 transition"></div>
 
@@ -2154,6 +2202,7 @@ const App = {
                 </div>
             `;
         }).join('');
+        grid.scrollLeft = 0;
     },
 
     openMasterLightbox: function(idx) {

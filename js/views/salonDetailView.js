@@ -2,6 +2,18 @@
 // SALON DETAIL VIEW (MOBILE FIRST + DIKIDI / FINTECH HYBRID)
 // ========================================================
 const SalonDetailView = {
+    groupServices: function(services) {
+        const categorized = services.some(service => service.category);
+        if (!categorized) return [{ name: '', services }];
+        const groups = new Map();
+        services.forEach(service => {
+            const name = service.category || 'Digər xidmətlər';
+            if (!groups.has(name)) groups.set(name, []);
+            groups.get(name).push(service);
+        });
+        return [...groups].map(([name, items]) => ({ name, services: items }));
+    },
+
     renderUserReviews: function(salonId) {
         let reviews = [];
         try {
@@ -126,7 +138,7 @@ const SalonDetailView = {
                                 <div class="flex items-center gap-1.5" aria-label="Sosial şəbəkələr">
                                     <a href="${instagramUrl}" target="_blank" aria-label="Instagram" title="Instagram" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
                                     <a href="${facebookUrl}" target="_blank" aria-label="Facebook" title="Facebook" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M14 8h3V4.5c-.5-.1-1.8-.2-3.4-.2-3.3 0-5.6 2-5.6 5.8V13H4v4h4v7h5v-7h3.3l.7-4H13v-2.5C13 9.3 13.3 8 14 8Z"/></svg></a>
-                                    <a href="https://wa.me/${whatsappDigits}" target="_blank" aria-label="WhatsApp" title="WhatsApp" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.2A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 8.5c.5 3 2 4.5 5 5"/></svg></a>
+                                    <a href="https://wa.me/${whatsappDigits}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 flex items-center justify-center transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163A11.87 11.87 0 0 1 .157 11.89C.16 5.335 5.495 0 12.05 0a11.8 11.8 0 0 1 8.413 3.488 11.81 11.81 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24Zm6.597-3.807a9.85 9.85 0 0 0 5.392 1.592c5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.85 9.85 0 0 0 1.746 5.634l-.999 3.648 3.742-.981Zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg></a>
                                 </div>
                             </div>
 
@@ -151,20 +163,32 @@ const SalonDetailView = {
 
                 ${business.branches.length > 1 ? `
                 <section class="bg-white rounded-3xl p-4 sm:p-5 border border-tbank-border shadow-sm">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+                    <div class="flex items-start justify-between gap-3 mb-4">
                         <div>
-                            <h2 class="font-black text-sm sm:text-base text-tbank-graphite">Filialı seçin</h2>
-                            <p class="text-[11px] text-slate-500 mt-0.5">Ünvan, iş saatları və rezervasiya seçilmiş filiala aiddir</p>
+                            <h2 class="font-black text-base text-tbank-graphite">Filialı seçin</h2>
+                            <p class="text-[11px] leading-relaxed text-slate-500 mt-1">Ünvan, iş saatları və rezervasiya seçilmiş filiala aiddir</p>
                         </div>
-                        <span class="text-[10px] font-black text-slate-500 bg-slate-100 rounded-full px-2.5 py-1">${business.branches.length} filial</span>
+                        <span class="shrink-0 inline-flex items-center h-7 px-2.5 rounded-lg bg-slate-100 text-[10px] font-black text-slate-600">${business.branches.length} filial</span>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         ${business.branches.map(branch => {
                             const active = branch.id === selectedBranch?.id;
-                            return `<button type="button" onclick="App.selectPublicBranch(${salon.id}, '${branch.id}')" class="text-left p-3 rounded-2xl border transition ${active ? 'border-tbank-graphite bg-tbank-yellow/35 ring-2 ring-tbank-yellow' : 'border-slate-200 bg-slate-50 hover:border-slate-400'}">
-                                <span class="flex items-center justify-between gap-2"><span class="text-xs font-black text-tbank-graphite">${branch.name}</span>${active ? '<span class="text-[9px] font-black bg-tbank-graphite text-white rounded-full px-2 py-0.5">Seçilib</span>' : ''}</span>
-                                <span class="block mt-1 text-[10px] leading-relaxed text-slate-500">${branch.address || 'Ünvan dəqiqləşdirilir'}</span>
-                                <span class="block mt-1 text-[10px] font-bold text-slate-700">${branch.hours || '09:00 – 21:00'}</span>
+                            return `<button type="button" aria-pressed="${active}" onclick="App.selectPublicBranch(${salon.id}, '${branch.id}')" class="relative overflow-hidden min-h-[104px] text-left p-3.5 rounded-2xl border transition-all duration-200 ${active ? 'border-tbank-graphite bg-tbank-graphite text-white shadow-md' : 'border-slate-200 bg-white text-tbank-graphite hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm'}">
+                                ${active ? '<span class="absolute inset-x-0 top-0 h-1 bg-tbank-yellow"></span>' : ''}
+                                <span class="flex items-start justify-between gap-3">
+                                    <span class="text-xs sm:text-sm font-black leading-tight">${branch.name}</span>
+                                    <span class="w-6 h-6 rounded-full shrink-0 flex items-center justify-center ${active ? 'bg-tbank-yellow text-tbank-graphite' : 'border border-slate-200 bg-slate-50 text-transparent'}">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg>
+                                    </span>
+                                </span>
+                                <span class="flex items-start gap-1.5 mt-2 text-[10px] leading-relaxed ${active ? 'text-white/70' : 'text-slate-500'}">
+                                    <svg class="w-3.5 h-3.5 shrink-0 mt-px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    <span>${branch.address || 'Ünvan dəqiqləşdirilir'}</span>
+                                </span>
+                                <span class="flex items-center gap-1.5 mt-1.5 text-[10px] font-extrabold ${active ? 'text-white' : 'text-slate-700'}">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
+                                    <span>${branch.hours || '09:00 – 21:00'}</span>
+                                </span>
                             </button>`;
                         }).join('')}
                     </div>
@@ -245,8 +269,8 @@ const SalonDetailView = {
                         </div>
                     </div>
 
-                    <!-- Photo Grid / Carousel -->
-                    <div id="salonGalleryGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 pt-1">
+                    <!-- Single-row photo carousel -->
+                    <div id="salonGalleryGrid" class="flex gap-3 sm:gap-4 overflow-x-auto overscroll-x-contain scroll-smooth snap-x snap-mandatory pb-2 pt-1" aria-label="Fotoqalereya">
                         <!-- Populated dynamically by App.renderGallery -->
                     </div>
                 </div>
@@ -292,8 +316,10 @@ const SalonDetailView = {
                         </div>
                     </div>
 
-                    <div class="divide-y divide-tbank-border/70">
-                        ${salon.services.map((srv) => `
+                    <div class="space-y-4">
+                        ${this.groupServices(salon.services).map(group => `<div>
+                            ${group.name ? `<h3 class="mb-2 rounded-xl bg-tbank-bg px-3 py-2 text-xs font-black text-tbank-graphite">${group.name}</h3>` : ''}
+                            <div class="divide-y divide-tbank-border/70">${group.services.map((srv) => `
                             <div class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
                                 <div class="min-w-0 flex-1">
                                     <h3 class="font-black text-xs sm:text-sm text-tbank-graphite truncate">${typeof App !== 'undefined' && App.getServiceName ? App.getServiceName(srv) : srv.name}</h3>
@@ -307,7 +333,8 @@ const SalonDetailView = {
                                     </button>
                                 </div>
                             </div>
-                        `).join('')}
+                            `).join('')}</div>
+                        </div>`).join('')}
                     </div>
                 </div>
 

@@ -311,7 +311,7 @@
                 <div class="mt-3 flex gap-2 max-w-3xl">
                     <div class="h-11 sm:h-12 flex-1 bg-white rounded-xl flex items-center px-3 shadow-sm border border-black/[0.04]">
                         <svg class="w-4 h-4 text-slate-400 shrink-0 mr-2" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                        <input id="searchInput" type="text" placeholder="Xidmət, salon və ya usta..." class="w-full bg-transparent outline-none text-xs sm:text-sm font-semibold text-tbank-graphite placeholder:text-slate-400" autocomplete="off" oninput="App.handleSearchInput(this.value)">
+                        <input id="searchInput" name="zeyvo_public_search_query" type="search" placeholder="Xidmət, salon və ya usta..." class="w-full bg-transparent outline-none text-xs sm:text-sm font-semibold text-tbank-graphite placeholder:text-slate-400" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" readonly data-form-type="other" data-lpignore="true" data-1p-ignore onfocus="this.removeAttribute('readonly')" oninput="App.handleSearchInput(this.value)">
                         <button id="clearSearchBtn" onclick="App.clearSearch()" class="hidden text-slate-400 hover:text-slate-600 p-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
                         </button>
@@ -459,12 +459,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-tbank-graphite mb-2">2. Boş saatı seçin</label>
+                    <label class="block text-xs font-bold text-tbank-graphite mb-2">2. Ustanı seçin</label>
+                    <div id="bookingMasterList" class="space-y-2"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-tbank-graphite mb-2">3. Boş saatı seçin</label>
                     <div id="bookingSlotList" class="flex flex-wrap gap-2"></div>
                 </div>
 
                 <div class="pt-2 border-t border-tbank-border">
-                    <label class="block text-xs font-bold text-tbank-graphite mb-2">3. Əlaqə məlumatları</label>
+                    <label class="block text-xs font-bold text-tbank-graphite mb-2">4. Əlaqə məlumatları</label>
                     <div class="space-y-2">
                         <input id="clientName" type="text" placeholder="Adınız və Soyadınız" class="w-full h-11 px-3.5 rounded-xl border border-tbank-border text-xs font-semibold outline-none focus:border-tbank-graphite">
                         <div class="h-11 bg-white rounded-xl border border-tbank-border flex items-center overflow-hidden focus-within:border-tbank-graphite transition">
@@ -1176,7 +1181,7 @@
     <script src="js/views/salonsView.js?v=20261011_userfix"></script>
     <script src="js/views/mastersView.js?v=20261009_mobile2"></script>
     <script src="js/views/masterDetailView.js?v=20261009_mobile2"></script>
-    <script src="js/views/salonDetailView.js?v=20261012_branches"></script>
+    <script src="js/views/salonDetailView.js?v=20261013_branch_style"></script>
     <script src="js/views/businessView.js?v=20261009_mobile2"></script>
     <script src="js/views/businessAuthView.js?v=20261004_mkt"></script>
     <script src="js/services/appointmentColorService.js?v=20261007_clr"></script>
@@ -1193,6 +1198,6 @@
     <script src="js/views/business/clients.js?v=20261009_mobile2"></script>
     <script src="js/views/business/pos.js?v=20261009_mobile2"></script>
     <script src="js/router.js?v=20261009_mobile2"></script>
-    <script src="js/app.js?v=20261012_branches"></script>
+    <script src="js/app.js?v=20261012_no_autofill"></script>
 </body>
 </html>
