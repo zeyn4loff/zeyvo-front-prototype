@@ -1,0 +1,26 @@
+import { Copy, Pencil, Trash2 } from "lucide-react";
+import BusinessStatusBadge from "../components/BusinessStatusBadge";
+import { marketingStatusLabel, type Campaign, type Promo } from "./marketing";
+
+type Entry = Campaign | Promo;
+type Props = { entries: Entry[]; kind: "campaigns" | "promocodes"; onEdit: (entry: Entry) => void; onDelete: (entry: Entry) => void; onCopy: (code: string) => void };
+const audience: Record<Campaign["target"], string> = { all: "Bütün müştərilər", vip: "VIP daimi müştərilər", new: "Yeni müştərilər", risk: "Passiv müştərilər (45+ gün)", birthdays: "Ad günü olanlar" };
+const td = "px-4 py-3.5 align-middle whitespace-nowrap";
+
+export default function MarketingTable({ entries, kind, onEdit, onDelete, onCopy }: Props) {
+  const campaign = kind === "campaigns";
+  const headers = campaign ? ["Kampaniyanın adı", "Kanal", "Növü", "Hədəf auditoriya", "Göndəriş", "Status", "Əməliyyatlar"] : ["Promokod", "Endirim dəyəri", "Şərtlər", "İstifadə / Limit", "Keçərlilik müddəti", "Status", "Əməliyyatlar"];
+  return <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[960px] border-collapse text-left text-xs text-slate-600"><thead className="border-b border-slate-100 bg-slate-50 text-slate-500"><tr>{headers.map((heading) => <th key={heading} className="whitespace-nowrap px-4 py-3 font-semibold">{heading}</th>)}</tr></thead><tbody className="divide-y divide-slate-100 font-medium">{entries.length === 0 && <tr><td colSpan={7} className="py-12 text-center text-slate-400">Axtarışa uyğun {campaign ? "kampaniya" : "promokod"} tapılmadı</td></tr>}{entries.map((entry) => <tr key={entry.id} className="transition hover:bg-slate-50/70">{"message" in entry ? <>
+    <td className={td}><button type="button" onClick={() => onEdit(entry)} className="max-w-64 cursor-pointer text-left"><strong className="block truncate text-slate-900">{entry.name}</strong><span className="block truncate text-[11px] font-normal text-slate-400">{entry.message}</span></button></td>
+    <td className={td}><span className={`rounded-lg border px-2.5 py-1 font-bold ${entry.channel === "whatsapp" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-blue-200 bg-blue-50 text-blue-700"}`}>{entry.channel === "whatsapp" ? "WhatsApp" : entry.channel.toUpperCase()}</span></td>
+    <td className={td}><strong className="text-slate-800">{entry.type === "automated" ? "Avtomatik" : "Kütləvi göndəriş"}</strong><span className="mt-1 block text-[11px] text-slate-400">{entry.schedule === "immediate" ? "Dərhal" : "Qrafik seçilib"}</span></td>
+    <td className={td}>{audience[entry.target]}</td>
+    <td className={td}><span className="text-slate-500">Qoşulmayıb</span></td>
+  </> : <>
+    <td className={td}><button type="button" onClick={() => onEdit(entry)} className="cursor-pointer text-left"><span className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 font-mono font-bold text-brand-primary">{entry.code}</span><strong className="mt-2 block text-slate-900">{entry.name}</strong><span className="text-[11px] font-normal text-slate-400">{entry.serviceScope === "specific" ? "Xüsusi xidmətlər" : "Bütün xidmətlər"}</span></button></td>
+    <td className={td}><span className={`rounded-lg border px-2.5 py-1 font-mono font-bold ${entry.discountType === "percent" ? "border-purple-200 bg-purple-50 text-purple-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>−{entry.discountValue}{entry.discountType === "percent" ? "%" : " ₼"}</span></td>
+    <td className={td}><strong>Min. {entry.minOrder} ₼ sifariş</strong><span className="mt-1 block text-[11px] text-slate-400">{entry.serviceScope === "specific" ? "Təyin edilmiş xidmətlər" : "Bütün xidmət növləri"}</span></td>
+    <td className={td}><strong>{entry.usedCount}</strong><span className="text-slate-400"> / {entry.usageLimit || "Limitsiz"}</span><div className="mt-1 h-1.5 w-24 rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${entry.usageLimit ? Math.min(100, entry.usedCount / entry.usageLimit * 100) : 0}%` }} /></div></td>
+    <td className={`${td} font-mono`}>{entry.startDate || "—"} — {entry.endDate || "—"}</td>
+  </>}<td className={td}><BusinessStatusBadge tone={campaign ? "neutral" : entry.status === "active" ? "success" : "neutral"}>{campaign && entry.status === "active" ? "Hazır" : marketingStatusLabel(entry)}</BusinessStatusBadge></td><td className={`${td} text-right`}>{"code" in entry && <button type="button" onClick={() => onCopy(entry.code)} aria-label={`${entry.code} kopyala`} className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100"><Copy size={16} /></button>}<button type="button" onClick={() => onEdit(entry)} aria-label={`${entry.name} redaktə et`} className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100"><Pencil size={16} /></button><button type="button" onClick={() => onDelete(entry)} aria-label={`${entry.name} sil`} className="inline-flex size-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 size={16} /></button></td></tr>)}</tbody></table></div></div>;
+}

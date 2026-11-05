@@ -1,0 +1,21 @@
+import { useState, type FormEvent } from "react";
+import type { Booking } from "../calendar/bookings";
+import type { Client } from "./clients";
+import ClientTimeline from "./ClientTimeline";
+import { MessageSquare, Send } from "lucide-react";
+
+export default function ClientProfileSidebar({ client, bookings, addNote, persist }: { client: Client; bookings: Booking[]; addNote: (event: FormEvent<HTMLFormElement>) => void; persist: (next: Client) => boolean }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [text, setText] = useState("");
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (editingId) {
+      if (text.trim() && persist({ ...client, notes: client.notes.map((item) => item.id === editingId ? { ...item, text: text.trim() } : item) })) { setEditingId(null); setText(""); }
+    } else { addNote(event); setText(""); }
+  }
+  return <aside className="hidden min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 min-[900px]:flex min-[900px]:w-[360px] min-[900px]:shrink-0" aria-label="Şərhlər">
+    <div className="shrink-0 border-b border-slate-200 bg-white px-4 pb-3 pt-4"><div className="flex justify-between gap-2"><div><h3 className="text-sm font-bold text-slate-900">Şərhlər</h3><p className="mt-0.5 text-[11px] text-slate-400">Komandanın müştəri haqqında şərhləri</p></div><span className="h-fit rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600">{client.notes.length}</span></div></div>
+    <form onSubmit={submit} className="shrink-0 border-b border-slate-200 bg-white p-4"><label className="block rounded-xl border border-slate-200 bg-slate-50 focus-within:border-slate-900 focus-within:ring-2 focus-within:ring-brand-primary/40"><textarea name="text" value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} required rows={2} maxLength={800} placeholder="Qeyd yazın... (məs. saç boyası nömrəsi, istəklər)" className="w-full resize-none bg-transparent px-3 pt-2.5 text-xs outline-none" /><span className="flex items-center justify-between gap-2 px-2 pb-2"><span className="text-[10px] text-slate-400">Ctrl + Enter ilə göndər</span><button type="submit" className="inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-brand-primary px-3 text-xs font-bold"><Send size={14} />{editingId ? "Yadda saxla" : "Göndər"}</button></span></label>{editingId && <button type="button" onClick={() => { setEditingId(null); setText(""); }} className="mt-1 text-[11px] text-slate-500">Redaktəni ləğv et</button>}</form>
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">{client.note && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs"><strong className="text-amber-800">Əsas qeyd (profil)</strong><p className="mt-1 break-words text-amber-950">{client.note}</p></div>}{client.notes.length ? client.notes.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-3 text-xs"><div className="flex justify-between gap-2"><time className="text-[11px] text-slate-400">{new Date(item.date).toLocaleString("az-AZ")}</time><span className="flex gap-2"><button type="button" onClick={() => { setEditingId(item.id); setText(item.text); }} className="font-semibold text-slate-600">Dəyiş</button><button type="button" onClick={() => persist({ ...client, notes: client.notes.filter((entry) => entry.id !== item.id) })} className="font-semibold text-rose-600">Sil</button></span></div><p className="mt-1 break-words text-slate-800">{item.text}</p></article>) : <div className="my-auto py-10 text-center"><span className="mx-auto flex size-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400"><MessageSquare size={20} /></span><strong className="mt-2 block text-xs text-slate-700">Hələ şərh yoxdur</strong><p className="mt-0.5 text-[11px] text-slate-400">İlk şərhi yuxarıdakı sahədən əlavə edin</p></div>}{client.notes.length > 0 && <><h4 className="pt-2 text-xs font-bold text-slate-700">Son fəaliyyət</h4><ClientTimeline client={client} bookings={bookings} compact /></>}</div>
+  </aside>;
+}

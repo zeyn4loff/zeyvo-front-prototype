@@ -1,0 +1,4 @@
+import type { ReactNode } from "react";
+import BusinessFormDialog from "../components/BusinessFormDialog";
+export function Frame({ title, description, children, onClose, size = "compact" }: { title: string; description?: string; children: ReactNode; onClose: () => void; size?: "compact" | "medium" }) { return <BusinessFormDialog title={title} description={description} onClose={onClose} size={size}>{children}</BusinessFormDialog>; }
+export function Buttons({ onClose, submitLabel = "Yadda saxla" }: { onClose: () => void; submitLabel?: string }) { return <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={onClose} className="min-h-11 cursor-pointer rounded-xl bg-slate-100 px-4 text-xs font-semibold text-slate-800">Ləğv et</button><button type="submit" className="min-h-11 cursor-pointer rounded-xl bg-brand-primary px-4 text-xs font-bold text-slate-900">{submitLabel}</button></div>; }
